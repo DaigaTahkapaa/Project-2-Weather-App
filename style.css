@@ -1,0 +1,208 @@
+:root {
+  /* 🎨 Primary palette (soft blues & corals) */
+  --color-primary-1: #8ab8d5; /* medium blue */
+  --color-primary-2: #b1d0e5; /* light blue */
+  --color-accent-1: #ffe1dc; /* very light coral */
+  --color-accent-2: #f9c6be; /* soft coral */
+  --color-accent-3: #f3aa9e; /* stronger coral */
+
+  /* 🖋️ Text colors */
+  --color-text-dark: #000000; /* main text */
+  --color-text-light: #ffffff; /* text on dark backgrounds */
+
+  /* ⚪ Neutral backgrounds */
+  --color-bg-light: #e6e6e6; /* light gray background */
+  --color-bg-dark: #48484a; /* dark gray background */
+  --color-bg-white: #ffffff; /* pure white background */
+
+  /* ⚠️ Status colors */
+  --color-warning: #ec6e4c; /* warning / accent orange-red */
+  --color-warning-bright: #ff7f50; /* optional brighter variant */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  background: var(--color-bg-light);
+  color: var(--color-text-dark);
+  line-height: 1.6;
+}
+
+.site-header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.site-text {
+  display: flex;
+  flex-direction: column;
+}
+
+button:focus,
+input:focus,
+select:focus {
+  outline: 3px solid var(--color-primary-1);
+  outline-offset: 2px;
+}
+
+/* Utility: screen-reader only */
+.sr-only {
+  position: absolute;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+}
+
+/* Layout */
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.site-header {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-1),
+    var(--color-primary-2)
+  );
+  color: var(--color-text-dark);
+  padding: 24px;
+  border-radius: 12px;
+}
+
+.site-title {
+  margin: 0 0 6px;
+}
+
+.site-tagline {
+  margin: 0;
+}
+
+.controls-panel {
+  background: var(--color-bg-white);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 12px 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+/* Controls (form + inputs) */
+#controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+#controls #q {
+  flex: 1;
+  min-width: 220px;
+  padding: 10px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+}
+
+/* Search button next to input */
+#searchBtn {
+  margin-left: 8px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-accent-2);
+  color: var(--color-text-dark);
+  cursor: pointer;
+  font-weight: 600;
+}
+#searchBtn:hover,
+#searchBtn:focus-visible {
+  background: var(--color-accent-3);
+  outline: 3px solid var(--color-primary-1);
+  outline-offset: 2px;
+}
+
+/* Status and grid */
+#status {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.95rem;
+  margin: 8px 0;
+}
+
+#grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+  margin: 12px 0;
+}
+
+/* Saved locations (place directly below header in the DOM)
+   - grid with up to 4 cards per row on wide screens
+   - responsive down to 1 column on narrow screens
+   - JS can populate `.saved-grid` with `.saved-card` elements */
+#saved-locations {
+  margin: 12px 0;
+}
+.saved-locations-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.saved-locations-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--color-text-dark);
+}
+.saved-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, 1fr); /* up to 4 cards per row */
+}
+.saved-card {
+  background: var(--color-bg-white);
+  border-radius: 10px;
+  padding: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.saved-card .loc-name {
+  font-weight: 700;
+  color: var(--color-text-dark);
+}
+.saved-card .loc-meta {
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* Responsive breakpoints: reduce columns on narrow viewports */
+@media (max-width: 1000px) {
+  .saved-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 760px) {
+  .saved-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .saved-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
