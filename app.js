@@ -10,7 +10,7 @@ const q = document.getElementById("q");
 const statusMessage = document.getElementById("status");
 
 // API KEY
-const OPENWEATHER_API_KEY = "d30b42f26da44290bbd8f450cf948e79";
+const OPENWEATHER_API_KEY = "";
 // Country codes to full country names
 const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
 
@@ -24,14 +24,14 @@ function debounce(fn, wait = 250) {
 }
 
 // Build geocoding URL
-function buildGeocodeUrl(query, limit = 7) {
+function buildGeocodeUrl(query, limit = 5) {
   const encodedQuery = encodeURIComponent(query);
   return `https://api.openweathermap.org/geo/1.0/direct?q=${encodedQuery}&limit=${limit}&appid=${OPENWEATHER_API_KEY}`;
 }
 
 // Call to the geolocate API to get Latitude and Longitude information for call to the weather API
-async function getLatLon(query, limit = 7) {
-  const url = buildGeocodeUrl(query, limit);
+async function getLatLon(query) {
+  const url = buildGeocodeUrl(query);
   if (statusMessage) {
     statusMessage.textContent = `Searching for "${query}"...`;
     statusMessage.setAttribute("aria-live", "polite");
