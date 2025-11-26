@@ -133,11 +133,19 @@ main {
   outline-offset: 2px;
 }
 
+/* (Autocomplete styles removed — not used in current HTML/JS) */
+
 /* Status and grid */
 #status {
   color: rgba(0, 0, 0, 0.6);
   font-size: 0.95rem;
   margin: 8px 0;
+}
+
+/* Warning variant for status messages (assertive) */
+#status.status-warning {
+  color: var(--color-warning-bright);
+  font-weight: 600;
 }
 
 #grid {
@@ -147,47 +155,14 @@ main {
   margin: 12px 0;
 }
 
-/* Saved locations (place directly below header in the DOM)
-   - grid with up to 4 cards per row on wide screens
-   - responsive down to 1 column on narrow screens
-   - JS can populate `.saved-grid` with `.saved-card` elements */
-#saved-locations {
-  margin: 12px 0;
-}
-.saved-locations-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-.saved-locations-header h2 {
-  margin: 0;
-  font-size: 1.05rem;
-  color: var(--color-text-dark);
-}
 .saved-grid {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(4, 1fr); /* up to 4 cards per row */
 }
-.saved-card {
-  background: var(--color-bg-white);
-  border-radius: 10px;
-  padding: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.saved-card .loc-name {
-  font-weight: 700;
-  color: var(--color-text-dark);
-}
-.saved-card .loc-meta {
-  font-size: 0.95rem;
-  color: rgba(0, 0, 0, 0.6);
+/* saved locations container (empty grid in HTML) */
+#saved-locations {
+  margin: 12px 0;
 }
 
 /* Responsive breakpoints: reduce columns on narrow viewports */

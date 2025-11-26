@@ -1,20 +1,116 @@
-/* File: app.js | Author: Your Name | Date: 03.11.2025 09:00 | Purpose: Handles API calls and UI updates */
-
-/*// Modern approach used in this project: fetch + Promise + async/await
-async function loadData() {                              // 13) Declare an async function so we can use await inside
-  try {                                                  // 14) Start a try block to catch network or parsing errors
-    const response = await fetch("some-url-here");       // 15) Send the request and pause here until the response arrives
-    if (!response.ok) {                                  // 16) If HTTP status is NOT in the range 200-299
-      console.log("Server returned error status:", response.status); // 17) Log the HTTP status code
-      return;                                            // 18) Stop the function early because something went wrong
-    }
-    const data = await response.json();                  // 19) Read and parse the response body as JSON into a JavaScript object
-    console.log("Parsed JSON object:", data);            // 20) Log the parsed object (easier to use than raw text)
-  } catch (err) {                                        // 21) If fetch fails or JSON is invalid, execution jumps here
-    console.log("Network error or invalid JSON:", err);  // 22) Log the error so the developer can inspect it
-  }                                                      // 23) End of try-catch
-}                                                        // 24) End of loadData function */
-
 // =====================================================================
 // === 1. DOM ELEMENT REFERENCES: Connect JavaScript to HTML elements ===
 // =====================================================================
+
+//grid: container for displaying country cards
+const grid = document.getElementById("grid");
+//q: search input field
+const q = document.getElementById("q");
+//status: area for showing messages
+const statusMessage = document.getElementById("status");
+
+// API KEY
+const OPENWEATHER_API_KEY = "d30b42f26da44290bbd8f450cf948e79";
+// Country codes to full country names
+const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+
+// Debounce utility to limit call frequency
+function debounce(fn, wait = 250) {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn(...args), wait);
+  };
+}
+
+// Build geocoding URL
+function buildGeocodeUrl(query, limit = 7) {
+  const encodedQuery = encodeURIComponent(query);
+  return `https://api.openweathermap.org/geo/1.0/direct?q=${encodedQuery}&limit=${limit}&appid=${OPENWEATHER_API_KEY}`;
+}
+
+// Call to the geolocate API to get Latitude and Longitude information for call to the weather API
+async function getLatLon(query, limit = 7) {
+  const url = buildGeocodeUrl(query, limit);
+  if (statusMessage) {
+    statusMessage.textContent = `Searching for "${query}"...`;
+    statusMessage.setAttribute("aria-live", "polite");
+    statusMessage.classList.remove("status-warning");
+  }
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      console.log("Server returned error status:", response.status);
+      if (statusMessage) {
+        statusMessage.textContent =
+          "Failed to fetch locations. Please try again.";
+        statusMessage.setAttribute("aria-live", "assertive");
+        statusMessage.classList.add("status-warning");
+      }
+      return null;
+    }
+
+    const json = await response.json();
+
+    if (Array.isArray(json) && json.length === 0) {
+      if (statusMessage) {
+        statusMessage.textContent =
+          "There are no locations matching your search term";
+        statusMessage.setAttribute("aria-live", "assertive");
+        statusMessage.classList.add("status-warning");
+      }
+      console.log(`Geocode JSON for "${query}" is an empty array.`);
+      return [];
+    }
+
+    // Success: clear any warning state
+    if (statusMessage) {
+      statusMessage.textContent = "";
+      statusMessage.setAttribute("aria-live", "polite");
+      statusMessage.classList.remove("status-warning");
+    }
+
+    console.log(`Geocode JSON for "${query}":`, json);
+    return json;
+  } catch (e) {
+    console.log("Network error or invalid JSON: ", e);
+    if (statusMessage) {
+      statusMessage.textContent =
+        "Failed to fetch locations. Please try again.";
+      statusMessage.setAttribute("aria-live", "assertive");
+      statusMessage.classList.add("status-warning");
+    }
+    return null;
+  }
+}
+
+// Get value from the search field and use it to call geolocate API
+// Debounced input: wait 350ms after typing stops, call getLatLon(), log JSON
+const handleSearchInput = debounce(async (evt) => {
+  const val = evt.target.value.trim();
+  if (!val) return;
+  // Use getLatLon's default limit (7). getLatLon already handles errors
+  // and updates `statusMessage`, so we don't need an outer try/catch here.
+  await getLatLon(val);
+}, 350);
+
+// Consolidated input handling:
+// - If the field is emptied, immediately clear status and remove warning state.
+// - Otherwise forward the event to the debounced handler to perform the geocode lookup.
+if (q) {
+  q.addEventListener("input", (e) => {
+    const val = e.target.value;
+    if (!val) {
+      if (statusMessage) {
+        statusMessage.textContent = "";
+        statusMessage.setAttribute("aria-live", "polite");
+        statusMessage.classList.remove("status-warning");
+      }
+      return;
+    }
+    // Non-empty: let the debounced handler run
+    handleSearchInput(e);
+  });
+}
