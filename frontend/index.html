@@ -142,13 +142,34 @@
           Many search engines and APIs expect the search term to be passed in a parameter called q-->
           <label for="q" class="sr-only">Search by location</label>
 
-          <!-- Text input where users type a location (placeholder is visible to sighted users) -->
-          <input
-            id="q"
-            type="search"
-            placeholder="Search by location"
-            autocomplete="off"
-          />
+          <!-- Input wrapper so suggestions can be absolutely positioned underneath -->
+          <div
+            class="combobox"
+            style="position: relative; display: inline-block; width: 100%"
+          >
+            <input
+              id="q"
+              type="search"
+              placeholder="Search by location"
+              autocomplete="off"
+              aria-autocomplete="list"
+              aria-controls="suggestions"
+              aria-expanded="false"
+              role="combobox"
+            />
+            <!-- Suggestions listbox (hidden when empty) -->
+            <div
+              id="suggestions"
+              class="suggestions"
+              role="listbox"
+              aria-label="Search suggestions"
+              tabindex="-1"
+              style="display: none"
+            >
+              <!-- JS will inject suggestion items here -->
+            </div>
+          </div>
+
           <button id="searchBtn" type="button">Search live data</button>
         </form>
       </section>
