@@ -193,12 +193,17 @@
           </div>
         </form>
       </section>
-      <svg class="icon">
-        <use href="assets/sprite.svg#icon-star"></use>
-      </svg>
+
       <!-- Area for status messages: text written here will be announced to assistive tech politely
-           (aria-live="polite") — good for non-critical updates like "Showing 8 of 250 countries" -->
+         (aria-live="polite") — good for non-critical updates like "Showing 8 of 250 countries" -->
       <section aria-live="polite" id="status"></section>
+
+      <!-- Current weather card (populated by JS) -->
+      <section
+        id="current-weather"
+        class="weather-card"
+        aria-live="polite"
+      ></section>
 
       <!-- JS will insert country cards into the grid section dynamically -->
       <section id="grid"></section>

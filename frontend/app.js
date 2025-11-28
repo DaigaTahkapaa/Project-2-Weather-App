@@ -25,6 +25,62 @@ function debounce(fn, wait = 250) {
   };
 }
 
+// --- Time helpers for OpenWeather One Call (dt is seconds) ---
+// Convert OpenWeather dt (seconds) + timezone offset (seconds) -> JS Date
+function toLocalDate(dtSeconds, timezoneOffsetSeconds = 0) {
+  // dtSeconds + timezoneOffsetSeconds -> seconds since epoch in target timezone
+  return new Date((Number(dtSeconds) + Number(timezoneOffsetSeconds)) * 1000);
+}
+
+// 1) Daily: short weekday + Month name + day + year
+// Example: "Fri, November 28, 2025"
+function formatDaily(dtSeconds, timezoneOffsetSeconds = 0, locale = "en-US") {
+  const d = toLocalDate(dtSeconds, timezoneOffsetSeconds);
+  return new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(d);
+}
+
+// 2) Current full: Month day year + time HH:MM:SS and raw timestamp (ms)
+// Example.formatted: "November 28 2025 00:00:00"
+function formatCurrentFull(
+  dtSeconds,
+  timezoneOffsetSeconds = 0,
+  locale = "en-US"
+) {
+  const d = toLocalDate(dtSeconds, timezoneOffsetSeconds);
+  const datePart = new Intl.DateTimeFormat(locale, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(d);
+  const timePart = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+    timeZone: "UTC", // not using IANA timezone; we've already applied offset
+  }).format(new Date(d.toISOString())); // safe canonicalization
+  return { formatted: `${datePart} ${timePart}`, timestampMs: d.getTime() };
+}
+
+// 3) Hourly compact: short weekday, full month name, day, HH:MM
+// Example: "Fri, November 28 12:00"
+function formatHourly(dtSeconds, timezoneOffsetSeconds = 0, locale = "en-US") {
+  const d = toLocalDate(dtSeconds, timezoneOffsetSeconds);
+  return new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+}
+
 // Convert winf direction degrees to compass wind direction
 function windDirection(deg) {
   const directions = [
@@ -71,6 +127,76 @@ function dedupeLocations(items) {
     out.push(it);
   }
   return out;
+}
+
+// Helper: format only time (HH:MM:SS) for a dt + timezone offset (place local time)
+function formatTimeOnly(
+  dtSeconds,
+  timezoneOffsetSeconds = 0,
+  locale = "en-US"
+) {
+  const d = toLocalDate(dtSeconds, timezoneOffsetSeconds);
+  return new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+    timeZone: "UTC",
+  }).format(new Date(d.toISOString()));
+}
+
+// Helper: format a dtSeconds into the user's local date+time string (their timezone)
+function formatUserLocalFromDt(
+  dtSeconds,
+  locale = navigator.language || "en-US"
+) {
+  const d = new Date(Number(dtSeconds) * 1000);
+  const datePart = new Intl.DateTimeFormat(locale, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(d);
+  const timePart = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(d);
+  return `${datePart} ${timePart} (Local time)`;
+}
+
+// Format a millisecond timestamp to user-local date/time string
+function formatUserLocalFromMs(ms, locale = navigator.language || "en-US") {
+  const d = new Date(Number(ms));
+  const datePart = new Intl.DateTimeFormat(locale, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(d);
+  const timePart = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(d);
+  return `${datePart} ${timePart} (Local time)`;
+}
+
+// Format user-local full datetime without suffix
+function formatUserLocalFullFromMs(ms, locale = navigator.language || "en-US") {
+  const d = new Date(Number(ms));
+  const datePart = new Intl.DateTimeFormat(locale, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(d);
+  const timePart = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(d);
+  return `${datePart} ${timePart}`;
 }
 
 // Call the server proxy to get locations for a query string.
@@ -171,6 +297,58 @@ let highlightedIndex = -1;
 let geocodeController = null;
 let lastQuery = "";
 const suggestionsEl = document.getElementById("suggestions");
+// Refresh control state: track when refresh is disabled until (ms) and last refresh timestamp (ms)
+let refreshDisabledUntil = 0;
+let lastRefreshTs = 0; // time when manual refresh was initiated (ms)
+let lastFetchedTs = 0; // time when any successful fetch returned (ms)
+
+// --- Time helpers for OpenWeather One Call (dt is seconds) ---
+function toLocalDate(dtSeconds, timezoneOffsetSeconds = 0) {
+  return new Date((Number(dtSeconds) + Number(timezoneOffsetSeconds)) * 1000);
+}
+
+function formatDaily(dtSeconds, timezoneOffsetSeconds = 0, locale = "en-US") {
+  const d = toLocalDate(dtSeconds, timezoneOffsetSeconds);
+  return new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(d);
+}
+
+function formatCurrentFull(
+  dtSeconds,
+  timezoneOffsetSeconds = 0,
+  locale = "en-US"
+) {
+  const d = toLocalDate(dtSeconds, timezoneOffsetSeconds);
+  const datePart = new Intl.DateTimeFormat(locale, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(d);
+  const timePart = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+    timeZone: "UTC",
+  }).format(new Date(d.toISOString()));
+  return { formatted: `${datePart} ${timePart}`, timestampMs: d.getTime() };
+}
+
+function formatHourly(dtSeconds, timezoneOffsetSeconds = 0, locale = "en-US") {
+  const d = toLocalDate(dtSeconds, timezoneOffsetSeconds);
+  return new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+}
 
 function clearSuggestions() {
   if (!suggestionsEl) return;
@@ -221,6 +399,171 @@ function renderSuggestions(items = []) {
   highlightedIndex = -1;
 }
 
+// --- Render current weather card ---
+function renderCurrentWeather(payload, location = {}) {
+  const el = document.getElementById("current-weather");
+  if (!el) return;
+  if (!payload || !payload.current) {
+    el.innerHTML =
+      '<div class="controls-panel">No weather data available.</div>';
+    return;
+  }
+
+  const tz = payload.timezone_offset || 0;
+  const current = payload.current;
+  const iconCode =
+    current.weather && current.weather[0] && current.weather[0].icon;
+  const description =
+    current.weather && current.weather[0] && current.weather[0].description;
+  const temp = current.temp;
+  const feels = current.feels_like;
+  const rainVal =
+    (current.rain && (current.rain["1h"] || current.rain["1h"])) || 0;
+  const snowVal =
+    (current.snow && (current.snow["1h"] || current.snow["1h"])) || 0;
+  const precip = (Number(rainVal) || 0) + (Number(snowVal) || 0);
+  const windSpeed = current.wind_speed;
+  const windGust = current.wind_gust || 0;
+  const windDeg = current.wind_deg || 0;
+
+  const unit = getSelectedUnit() || "metric";
+  const tempUnit = unit === "metric" ? "°C" : "°F";
+  const windUnit = unit === "metric" ? "m/s" : "mph";
+
+  const nameText = location.name || "";
+  const countryText = location.country
+    ? regionNames.of(location.country) || location.country
+    : "";
+  const stateText = location.state ? `, ${location.state}` : "";
+
+  // place-local time for title (time only)
+  const placeTimeOnly = formatTimeOnly(current.dt, tz);
+  // Use the payload's timestamp (`current.dt`) for displayed times so both
+  // the user's local representation and the place-local time come from the
+  // same source (avoid a few-second skew caused by fetch/roundtrip timing).
+  const payloadMs = Number(current.dt) * 1000;
+  const lastUpdatedUser = formatUserLocalFromMs(payloadMs);
+  const userLocalFull = formatUserLocalFullFromMs(payloadMs);
+  const refreshDisabled = Date.now() < (refreshDisabledUntil || 0);
+
+  const iconUrl = iconCode
+    ? `https://openweathermap.org/img/wn/${iconCode}@4x.png`
+    : "";
+
+  el.innerHTML = `
+    <div class="weather-card__header">
+      <div class="weather-card__header-left">
+        <div>
+          <h3 class="weather-card__title">${escapeHtml(nameText)}</h3>
+          <div class="weather-card__subtitle">${escapeHtml(
+            countryText
+          )}${escapeHtml(stateText)}</div>
+        </div>
+      </div>
+      <div>
+        <button class="weather-card__refresh" aria-label="Refresh weather" id="weather-refresh-btn" ${
+          refreshDisabled ? "disabled" : ""
+        }>
+          <svg class="icon" width="20" height="20"><use href="assets/sprite.svg#icon-refresh"></use></svg>
+        </button>
+      </div>
+    </div>
+    <div class="weather-card__meta-row"><strong>Current weather</strong> (Last updated: ${escapeHtml(
+      userLocalFull
+    )} (Local time ${escapeHtml(placeTimeOnly)}))</div>
+    <div class="weather-card__body">
+      <div class="weather-symbol">
+        ${
+          iconUrl
+            ? `<img class="weather-symbol__img" src="${iconUrl}" alt="${escapeHtml(
+                description || ""
+              )}">`
+            : ""
+        }
+      </div>
+      <div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg class="icon"><use href="assets/sprite.svg#icon-thermometer"></use></svg>
+          <div class="weather-main-temp">${Math.round(
+            temp
+          )}<span class="temperature__degree">${tempUnit}</span></div>
+        </div>
+        <div class="weather-feels">Feels like ${Math.round(
+          feels
+        )}${tempUnit}</div>
+        <div style="height:8px"></div>
+        <div class="weather-details">
+          <div class="weather-detail">
+            <svg class="icon"><use href="assets/sprite.svg#icon-drop"></use></svg>
+            <div>${precip} mm</div>
+          </div>
+          <div class="weather-detail">
+            <svg class="icon"><use href="assets/sprite.svg#icon-wind"></use></svg>
+            <div><strong>${windSpeed}</strong><div style="font-size:0.85rem">(${windGust}) ${windUnit}</div></div>
+            <div class="wind-arrow" style="transform: rotate(${windDeg}deg)"><svg class="icon"><use href="assets/sprite.svg#icon-arrow-down"></use></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // wire refresh with a short cooldown (10s) to avoid spamming the API
+  const refreshBtn = document.getElementById("weather-refresh-btn");
+  if (refreshBtn) {
+    // helper to set cooldown using global state and update any current DOM button by id
+    const setCooldown = (ms = 10000) => {
+      const now = Date.now();
+      refreshDisabledUntil = now + ms;
+      lastRefreshTs = now;
+      // set disabled on whatever button currently exists
+      const curBtn = document.getElementById("weather-refresh-btn");
+      if (curBtn) {
+        try {
+          curBtn.setAttribute("disabled", "true");
+        } catch (e) {}
+        curBtn.classList.add("disabled");
+      }
+      // clear cooldown after ms and re-enable the button in DOM if present
+      setTimeout(() => {
+        refreshDisabledUntil = 0;
+        const b = document.getElementById("weather-refresh-btn");
+        if (b) {
+          try {
+            b.removeAttribute("disabled");
+          } catch (e) {}
+          b.classList.remove("disabled");
+        }
+      }, ms);
+    };
+
+    refreshBtn.addEventListener("click", () => {
+      // if disabled, ignore
+      if (refreshBtn.hasAttribute("disabled")) return;
+      if (
+        lastSelectedLocation &&
+        lastSelectedLocation.lat &&
+        lastSelectedLocation.lon
+      ) {
+        // set cooldown immediately and start fetch
+        setCooldown(10000); // 10 seconds
+        fetchWeather(
+          lastSelectedLocation.lat,
+          lastSelectedLocation.lon,
+          lastSelectedLocation
+        );
+      }
+    });
+  }
+}
+
+// small helper to escape text into HTML
+function escapeHtml(s) {
+  return String(s || "").replace(
+    /[&<>"]/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])
+  );
+}
+
 function setHighlight(index) {
   if (!suggestionsEl) return;
   const items = suggestionsEl.querySelectorAll(".suggestion-item");
@@ -248,12 +591,15 @@ function selectSuggestion(index) {
   clearSuggestions();
   // You can now call your weather lookup with sel.lat / sel.lon
   console.log("Selected location:", sel);
-  // Immediately fetch weather for the selected location and log it.
-  fetchWeather(sel.lat, sel.lon);
+  // Immediately fetch weather for the selected location and log + render it.
+  // store last selected for refresh
+  lastSelectedLocation = sel;
+  // pass the full selected object so renderCurrentWeather can show name/country/state
+  fetchWeather(sel.lat, sel.lon, sel);
 }
 
 // Fetch weather from the backend proxy and log the full response.
-async function fetchWeather(lat, lon) {
+async function fetchWeather(lat, lon, location = null) {
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
     console.error("fetchWeather: invalid lat/lon", lat, lon);
     return null;
@@ -274,6 +620,14 @@ async function fetchWeather(lat, lon) {
     }
     const json = await resp.json();
     console.log("Weather response:", json);
+    // record that we successfully fetched new data now
+    try {
+      lastFetchedTs = Date.now();
+    } catch (e) {}
+    // render current weather card using returned payload
+    // prefer explicit location argument, fall back to lastSelectedLocation or lat/lon
+    const loc = location || lastSelectedLocation || { lat, lon };
+    renderCurrentWeather(json, loc);
     return json;
   } catch (err) {
     console.error("fetchWeather error", err);
@@ -319,6 +673,9 @@ document.addEventListener("click", (ev) => {
 // Default unit is 'metric'. Persist selection in localStorage so it "keeps" between reloads.
 let currentUnit = localStorage.getItem("weather_unit") || "metric";
 const unitToggle = document.querySelector(".unit-toggle");
+
+// store last selected location for refresh
+let lastSelectedLocation = null;
 
 function applyUnitToUI(unit) {
   if (!unitToggle) return;
