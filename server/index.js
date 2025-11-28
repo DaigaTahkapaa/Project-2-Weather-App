@@ -54,6 +54,41 @@ app.get("/api/geocode", async (req, res) => {
   }
 });
 
+// Proxy to OpenWeather One Call (returns full weather payload). Backend adds the API key.
+app.get("/api/weather", async (req, res) => {
+  const lat = Number(req.query.lat);
+  const lon = Number(req.query.lon);
+  const units = String(req.query.units || "metric");
+  const exclude = String(req.query.exclude || "minutely");
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    return res.status(400).json({ error: "Missing or invalid lat/lon" });
+  }
+
+  const upstream = new URL("https://api.openweathermap.org/data/3.0/onecall");
+  upstream.search = new URLSearchParams({
+    lat: String(lat),
+    lon: String(lon),
+    units: units,
+    exclude: exclude,
+    appid: KEY,
+  }).toString();
+
+  try {
+    const r = await fetch(upstream.toString());
+    if (!r.ok)
+      return res
+        .status(502)
+        .json({ error: "Upstream error", status: r.status });
+    const json = await r.json();
+    // Return full payload (no mapping) — frontend will decide what to read.
+    res.json(json);
+  } catch (err) {
+    console.error("Weather proxy error", err);
+    res.status(500).json({ error: "Proxy failed" });
+  }
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Proxy listening on http://localhost:${PORT}`);

@@ -146,7 +146,41 @@ main {
   outline-offset: 2px;
 }
 
-/* (Autocomplete styles removed — not used in current HTML/JS) */
+/* Unit toggle (°C / °F) */
+.unit-toggle {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.unit-toggle .unit-btn {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  background: var(--color-bg-light);
+  color: var(--color-bg-dark);
+}
+
+.unit-toggle .unit-btn[aria-pressed="true"],
+.unit-toggle .unit-btn.active {
+  background: var(--color-primary-1);
+  color: var(--color-text-dark);
+}
+
+.unit-toggle .unit-btn:focus {
+  outline: 3px solid var(--color-primary-1);
+  outline-offset: 2px;
+}
+
+/* icons for the current weather card*/
+.icon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-bg-dark);
+}
 
 /* Status and grid */
 #status {

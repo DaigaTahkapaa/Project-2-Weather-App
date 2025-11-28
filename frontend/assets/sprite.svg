@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+
+  <!-- Arrow Down -->
+  <symbol id="icon-arrow-down" viewBox="0 0 256 256">
+    <line x1="128" y1="40" x2="128" y2="216" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    <polyline points="56 144 128 216 200 144" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+  </symbol>
+
+  <!-- Umbrella -->
+  <symbol id="icon-umbrella" viewBox="0 0 256 256">
+    <path d="M176,200a24,24,0,0,1-48,0V136" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    <path d="M32,136a8,8,0,0,1-8-8.71,104.37,104.37,0,0,1,207.94,0,8,8,0,0,1-8,8.71Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+  </symbol>
+
+  <!-- Thermometer -->
+  <symbol id="icon-thermometer" viewBox="0 0 256 256">
+    <circle cx="212" cy="84" r="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    <line x1="120" y1="160" x2="120" y2="88" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    <circle cx="120" cy="184" r="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    <path d="M88,48a32,32,0,0,1,64,0v90a56,56,0,1,1-64,0Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+  </symbol>
+
+  <!-- Wind -->
+  <symbol id="icon-wind" viewBox="0 0 256 256">
+    <path d="M128,192c3.39,9.15,13.67,16,24,16a24,24,0,0,0,0-48H40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    <path d="M96,64c3.39-9.15,13.67-16,24-16a24,24,0,0,1,0,48H24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    <path d="M184,96c3.39-9.15,13.67-16,24-16a24,24,0,0,1,0,48H32" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+  </symbol>
+
+  <!-- Drop -->
+  <symbol id="icon-drop" viewBox="0 0 256 256">
+    <path d="M208,144c0-72-80-128-80-128S48,72,48,144a80,80,0,0,0,160,0Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    <path d="M136,192c20-3.37,36.61-20,40-40" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+  </symbol>
+
+  <!-- Compass -->
+  <symbol id="icon-snowflake" viewBox="0 0 256 256">
+    <line x1="128" y1="64" x2="128" y2="192" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    <polyline points="104 40 128 64 152 40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    <polyline points="104 216 128 192 152 216" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    <line x1="72.57" y1="96" x2="183.43" y2="160" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    <polyline points="40 104 72.57 96 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    <polyline points="192 192 183.43 160 216 152" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    <line x1="72.57" y1="160" x2="183.43" y2="96" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    <polyline points="64 192 72.57 160 40 152" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    <polyline points="216 104 183.43 96 192 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+  </symbol>
+
+  <!-- Star -->
+  <symbol id="icon-star" viewBox="0 0 256 256">
+<path d="M128,189.09l54.72,33.65a8.4,8.4,0,0,0,12.52-9.17l-14.88-62.79,48.7-42A8.46,8.46,0,0,0,224.27,94L160.36,88.8,135.74,29.2a8.36,8.36,0,0,0-15.48,0L95.64,88.8,31.73,94a8.46,8.46,0,0,0-4.79,14.83l48.7,42L60.76,213.57a8.4,8.4,0,0,0,12.52,9.17Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+  </symbol>
+
+
+</svg>

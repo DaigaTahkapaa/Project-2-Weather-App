@@ -25,6 +25,31 @@ function debounce(fn, wait = 250) {
   };
 }
 
+// Convert winf direction degrees to compass wind direction
+function windDirection(deg) {
+  const directions = [
+    "N",
+    "NNE",
+    "NE",
+    "ENE",
+    "E",
+    "ESE",
+    "SE",
+    "SSE",
+    "S",
+    "SSW",
+    "SW",
+    "WSW",
+    "W",
+    "WNW",
+    "NW",
+    "NNW",
+  ];
+  // 360° / 16 = 22.5° per sector
+  const index = Math.round(deg / 22.5) % 16;
+  return directions[index];
+}
+
 // Remove exact-duplicate locations (same name + country + state), keep the first.
 function dedupeLocations(items) {
   if (!Array.isArray(items)) return [];
@@ -223,6 +248,37 @@ function selectSuggestion(index) {
   clearSuggestions();
   // You can now call your weather lookup with sel.lat / sel.lon
   console.log("Selected location:", sel);
+  // Immediately fetch weather for the selected location and log it.
+  fetchWeather(sel.lat, sel.lon);
+}
+
+// Fetch weather from the backend proxy and log the full response.
+async function fetchWeather(lat, lon) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    console.error("fetchWeather: invalid lat/lon", lat, lon);
+    return null;
+  }
+  const units = getSelectedUnit() || "metric";
+  const exclude = "minutely";
+  const url = `http://localhost:3000/api/weather?lat=${encodeURIComponent(
+    lat
+  )}&lon=${encodeURIComponent(lon)}&units=${encodeURIComponent(
+    units
+  )}&exclude=${encodeURIComponent(exclude)}`;
+  console.log("fetchWeather ->", url);
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) {
+      console.error("Weather proxy returned", resp.status);
+      return null;
+    }
+    const json = await resp.json();
+    console.log("Weather response:", json);
+    return json;
+  } catch (err) {
+    console.error("fetchWeather error", err);
+    return null;
+  }
 }
 
 // Keyboard interaction for input
@@ -258,6 +314,47 @@ document.addEventListener("click", (ev) => {
   if (ev.target === q || suggestionsEl.contains(ev.target)) return;
   clearSuggestions();
 });
+
+// ===== Unit toggle (°C / °F) =====
+// Default unit is 'metric'. Persist selection in localStorage so it "keeps" between reloads.
+let currentUnit = localStorage.getItem("weather_unit") || "metric";
+const unitToggle = document.querySelector(".unit-toggle");
+
+function applyUnitToUI(unit) {
+  if (!unitToggle) return;
+  const buttons = unitToggle.querySelectorAll(".unit-btn");
+  buttons.forEach((btn) => {
+    const u = btn.getAttribute("data-unit");
+    const isActive = u === unit;
+    btn.classList.toggle("active", isActive);
+    btn.setAttribute("aria-pressed", String(isActive));
+  });
+}
+
+function setUnit(unit) {
+  if (unit !== "metric" && unit !== "imperial") return;
+  currentUnit = unit;
+  localStorage.setItem("weather_unit", unit);
+  applyUnitToUI(unit);
+}
+
+// Initialize UI on load
+applyUnitToUI(currentUnit);
+
+// Delegate clicks inside unitToggle
+if (unitToggle) {
+  unitToggle.addEventListener("click", (ev) => {
+    const btn = ev.target.closest(".unit-btn");
+    if (!btn) return;
+    const unit = btn.getAttribute("data-unit");
+    setUnit(unit);
+  });
+}
+
+// Getter for other code to use when making weather API calls
+function getSelectedUnit() {
+  return currentUnit;
+}
 
 // Helper: attach a debounced listener to #q. Calls `callback(trimmedValue)` after `wait` ms of inactivity.
 function addDebouncedInputListener(callback, wait = 350) {

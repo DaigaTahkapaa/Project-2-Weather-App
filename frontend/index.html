@@ -171,8 +171,31 @@
           </div>
 
           <button id="searchBtn" type="button">Search live data</button>
+
+          <!-- Unit toggle: °C (m/s) vs °F (mph) -->
+          <div class="unit-toggle" role="group" aria-label="Units">
+            <button
+              type="button"
+              data-unit="metric"
+              class="unit-btn"
+              aria-pressed="true"
+            >
+              °C (m/s)
+            </button>
+            <button
+              type="button"
+              data-unit="imperial"
+              class="unit-btn"
+              aria-pressed="false"
+            >
+              °F (mph)
+            </button>
+          </div>
         </form>
       </section>
+      <svg class="icon">
+        <use href="assets/sprite.svg#icon-star"></use>
+      </svg>
       <!-- Area for status messages: text written here will be announced to assistive tech politely
            (aria-live="polite") — good for non-critical updates like "Showing 8 of 250 countries" -->
       <section aria-live="polite" id="status"></section>
