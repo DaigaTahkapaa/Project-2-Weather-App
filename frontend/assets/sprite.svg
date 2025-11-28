@@ -33,7 +33,7 @@
     <path d="M136,192c20-3.37,36.61-20,40-40" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
   </symbol>
 
-  <!-- Compass -->
+  <!-- Snowflake -->
   <symbol id="icon-snowflake" viewBox="0 0 256 256">
     <line x1="128" y1="64" x2="128" y2="192" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
     <polyline points="104 40 128 64 152 40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>

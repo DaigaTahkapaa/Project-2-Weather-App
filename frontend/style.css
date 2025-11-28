@@ -320,6 +320,8 @@ main {
   display: flex;
   gap: 16px;
   align-items: center;
+  justify-content: space-around;
+  min-height: 140px;
 }
 
 /* Meta row between header and body */
@@ -334,6 +336,31 @@ main {
   width: 120px;
   height: 120px;
   object-fit: contain;
+}
+
+/* New column groups inside weather-card__body */
+.weather-card_api_icon,
+.weather-card_temperature,
+.weather-card_precipitation,
+.weather-card_wind {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* items sit at the bottom of each column */
+  align-items: center;
+  gap: 6px;
+}
+
+.weather-feels-small,
+.wind-gust-small,
+.precip-value {
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.weather-main-temp {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin: 0 8px;
 }
 
 .weather-main-temp {
@@ -391,4 +418,10 @@ main {
   width: 18px;
   height: 18px;
   display: inline-block;
+}
+.wind-direction {
+  font-size: 0.9rem;
+  color: #333;
+  margin-left: 6px;
+  align-self: center;
 }

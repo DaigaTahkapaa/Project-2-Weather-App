@@ -299,8 +299,7 @@ let lastQuery = "";
 const suggestionsEl = document.getElementById("suggestions");
 // Refresh control state: track when refresh is disabled until (ms) and last refresh timestamp (ms)
 let refreshDisabledUntil = 0;
-let lastRefreshTs = 0; // time when manual refresh was initiated (ms)
-let lastFetchedTs = 0; // time when any successful fetch returned (ms)
+let lastFetchedTs = 0; // time when any fetch was initiated or returned (ms)
 
 // --- Time helpers for OpenWeather One Call (dt is seconds) ---
 function toLocalDate(dtSeconds, timezoneOffsetSeconds = 0) {
@@ -427,6 +426,20 @@ function renderCurrentWeather(payload, location = {}) {
   const windDeg = current.wind_deg || 0;
 
   const unit = getSelectedUnit() || "metric";
+  // precipitation icon and display value (convert to in/h for imperial)
+  const hasRain = !!current.rain;
+  const hasSnow = !!current.snow;
+  const precipIconName = hasSnow ? "icon-snowflake" : "icon-drop";
+  const precipUnit = unit === "metric" ? "mm/h" : "in/h";
+  let precipValue = Number(precip) || 0;
+  if (unit !== "metric") {
+    // convert mm to inches
+    precipValue = Math.round((precipValue / 25.4) * 100) / 100;
+  } else {
+    precipValue = Math.round(precipValue);
+  }
+  const precipIconSvg = `<svg class="icon"><use href="assets/sprite.svg#${precipIconName}"></use></svg>`;
+
   const tempUnit = unit === "metric" ? "°C" : "°F";
   const windUnit = unit === "metric" ? "m/s" : "mph";
 
@@ -436,14 +449,17 @@ function renderCurrentWeather(payload, location = {}) {
     : "";
   const stateText = location.state ? `, ${location.state}` : "";
 
-  // place-local time for title (time only)
-  const placeTimeOnly = formatTimeOnly(current.dt, tz);
-  // Use the payload's timestamp (`current.dt`) for displayed times so both
-  // the user's local representation and the place-local time come from the
-  // same source (avoid a few-second skew caused by fetch/roundtrip timing).
+  // Determine display timestamps:
+  // - payloadMs is the timestamp from the weather payload
+  // - displayUserMs prefers the client-side fetch timestamp (`lastFetchedTs`) if present
   const payloadMs = Number(current.dt) * 1000;
-  const lastUpdatedUser = formatUserLocalFromMs(payloadMs);
-  const userLocalFull = formatUserLocalFullFromMs(payloadMs);
+  const displayUserMs = lastFetchedTs || payloadMs;
+  // place-local time: derive from the same display timestamp so it updates immediately
+  // when the client refreshes. Pass the absolute epoch seconds and the place's
+  // timezone offset to `formatTimeOnly` so the helper applies the offset once.
+  const placeTimeOnly = formatTimeOnly(displayUserMs / 1000, tz);
+  const lastUpdatedUser = formatUserLocalFromMs(displayUserMs);
+  const userLocalFull = formatUserLocalFullFromMs(displayUserMs);
   const refreshDisabled = Date.now() < (refreshDisabledUntil || 0);
 
   const iconUrl = iconCode
@@ -472,7 +488,7 @@ function renderCurrentWeather(payload, location = {}) {
       userLocalFull
     )} (Local time ${escapeHtml(placeTimeOnly)}))</div>
     <div class="weather-card__body">
-      <div class="weather-symbol">
+      <div class="weather-card_api_icon">
         ${
           iconUrl
             ? `<img class="weather-symbol__img" src="${iconUrl}" alt="${escapeHtml(
@@ -481,27 +497,35 @@ function renderCurrentWeather(payload, location = {}) {
             : ""
         }
       </div>
-      <div>
-        <div style="display:flex; align-items:center; gap:8px;">
+      <div class="weather-card_temperature">
+        <div style="display:flex; align-items:flex-end; gap:8px;">
           <svg class="icon"><use href="assets/sprite.svg#icon-thermometer"></use></svg>
           <div class="weather-main-temp">${Math.round(
             temp
           )}<span class="temperature__degree">${tempUnit}</span></div>
         </div>
-        <div class="weather-feels">Feels like ${Math.round(
+        <div class="weather-feels-small">Feels like ${Math.round(
           feels
         )}${tempUnit}</div>
+      </div>
+      <div class="weather-card_precipitation">
+        ${precipIconSvg}
+        <div class="precip-value">${precipValue} ${precipUnit}</div>
+      </div>
+      <div class="weather-card_wind">
+        <div style="display:flex; align-items:flex-end; gap:8px;">
+          <svg class="icon"><use href="assets/sprite.svg#icon-wind"></use></svg>
+          <div>
+            <div class="wind-speed"><strong>${windSpeed}</strong></div>
+            <div class="wind-gust-small">(${windGust}) ${windUnit}</div>
+          </div>
+        </div>
         <div style="height:8px"></div>
-        <div class="weather-details">
-          <div class="weather-detail">
-            <svg class="icon"><use href="assets/sprite.svg#icon-drop"></use></svg>
-            <div>${precip} mm</div>
-          </div>
-          <div class="weather-detail">
-            <svg class="icon"><use href="assets/sprite.svg#icon-wind"></use></svg>
-            <div><strong>${windSpeed}</strong><div style="font-size:0.85rem">(${windGust}) ${windUnit}</div></div>
-            <div class="wind-arrow" style="transform: rotate(${windDeg}deg)"><svg class="icon"><use href="assets/sprite.svg#icon-arrow-down"></use></svg></div>
-          </div>
+        <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
+          <div class="wind-arrow" style="transform: rotate(${windDeg}deg)"><svg class="icon"><use href="assets/sprite.svg#icon-arrow-down"></use></svg></div>
+          <div class="wind-direction">from ${escapeHtml(
+            windDirection(windDeg)
+          )}</div>
         </div>
       </div>
     </div>
@@ -595,6 +619,8 @@ function selectSuggestion(index) {
   // store last selected for refresh
   lastSelectedLocation = sel;
   // pass the full selected object so renderCurrentWeather can show name/country/state
+  // mark client fetch time immediately so the UI updates timestamp
+  lastFetchedTs = Date.now();
   fetchWeather(sel.lat, sel.lon, sel);
 }
 
@@ -705,6 +731,21 @@ if (unitToggle) {
     if (!btn) return;
     const unit = btn.getAttribute("data-unit");
     setUnit(unit);
+    // if we have a selected location, re-fetch its weather in the new units
+    if (
+      lastSelectedLocation &&
+      Number.isFinite(Number(lastSelectedLocation.lat)) &&
+      Number.isFinite(Number(lastSelectedLocation.lon))
+    ) {
+      // mark client fetch time immediately so the UI updates timestamp
+      lastFetchedTs = Date.now();
+      // fetchWeather will use getSelectedUnit() so it picks up the just-changed unit
+      fetchWeather(
+        Number(lastSelectedLocation.lat),
+        Number(lastSelectedLocation.lon),
+        lastSelectedLocation
+      );
+    }
   });
 }
 
