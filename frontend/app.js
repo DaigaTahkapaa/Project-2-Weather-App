@@ -84,24 +84,23 @@ function formatHourly(dtSeconds, timezoneOffsetSeconds = 0, locale = "en-US") {
 // Convert winf direction degrees to compass wind direction
 function windDirection(deg) {
   const directions = [
-    "N",
-    "NNE",
-    "NE",
-    "ENE",
-    "E",
-    "ESE",
-    "SE",
-    "SSE",
-    "S",
-    "SSW",
-    "SW",
-    "WSW",
-    "W",
-    "WNW",
-    "NW",
-    "NNW",
+    { short: "N", full: "North" },
+    { short: "NNE", full: "North-Northeast" },
+    { short: "NE", full: "Northeast" },
+    { short: "ENE", full: "East-Northeast" },
+    { short: "E", full: "East" },
+    { short: "ESE", full: "East-Southeast" },
+    { short: "SE", full: "Southeast" },
+    { short: "SSE", full: "South-Southeast" },
+    { short: "S", full: "South" },
+    { short: "SSW", full: "South-Southwest" },
+    { short: "SW", full: "Southwest" },
+    { short: "WSW", full: "West-Southwest" },
+    { short: "W", full: "West" },
+    { short: "WNW", full: "West-Northwest" },
+    { short: "NW", full: "Northwest" },
+    { short: "NNW", full: "North-Northwest" },
   ];
-  // 360° / 16 = 22.5° per sector
   const index = Math.round(deg / 22.5) % 16;
   return directions[index];
 }
@@ -414,6 +413,49 @@ function renderCurrentWeather(payload, location = {}) {
     current.weather && current.weather[0] && current.weather[0].icon;
   const description =
     current.weather && current.weather[0] && current.weather[0].description;
+  // Collect all weather descriptions (may be multiple entries)
+  const descriptionsList = Array.isArray(current.weather)
+    ? current.weather
+        .map((w) => w && w.description)
+        .filter(Boolean)
+        .join(", ")
+    : "";
+  // Precipitation-related weather IDs (rain/snow/showers, etc.)
+  const precipWeatherIds = [
+    500,
+    501,
+    502,
+    503,
+    504,
+    511,
+    520,
+    521,
+    522,
+    531, // rain/shower codes
+    600,
+    601,
+    602,
+    611,
+    612,
+    613,
+    615,
+    616,
+    620,
+    621,
+    622, // snow/sleet/hail
+  ];
+  const precipDescriptionsList = Array.isArray(current.weather)
+    ? current.weather
+        .filter(
+          (w) =>
+            w &&
+            Number.isFinite(Number(w.id)) &&
+            precipWeatherIds.includes(Number(w.id))
+        )
+        .map((w) => w && w.description)
+        .filter(Boolean)
+        .join(", ")
+    : "";
   const temp = current.temp;
   const feels = current.feels_like;
   const rainVal =
@@ -442,6 +484,36 @@ function renderCurrentWeather(payload, location = {}) {
 
   const tempUnit = unit === "metric" ? "°C" : "°F";
   const windUnit = unit === "metric" ? "m/s" : "mph";
+  // Accessible label for temperature unit (used by screen readers)
+  const tempUnitLabel =
+    tempUnit === "°C" ? "degrees Celsius" : "degrees Fahrenheit";
+
+  // Accessible unit label helpers for short unit strings
+  function unitLabel(u) {
+    switch (u) {
+      case "mm":
+        return "millimeters";
+      case "mm/h":
+        return "millimeters per hour";
+      case "in/h":
+        return "inches per hour";
+      default:
+        return String(u || "");
+    }
+  }
+
+  function windUnitLabel(u) {
+    switch (u) {
+      case "m/s":
+        return "meters per second";
+      case "mph":
+        return "miles per hour";
+      case "km/h":
+        return "kilometers per hour";
+      default:
+        return String(u || "");
+    }
+  }
 
   const nameText = location.name || "";
   const countryText = location.country
@@ -461,10 +533,15 @@ function renderCurrentWeather(payload, location = {}) {
   const lastUpdatedUser = formatUserLocalFromMs(displayUserMs);
   const userLocalFull = formatUserLocalFullFromMs(displayUserMs);
   const refreshDisabled = Date.now() < (refreshDisabledUntil || 0);
-
-  const iconUrl = iconCode
+  //weather icon current weather
+  const iconUrlCurrent = iconCode
     ? `https://openweathermap.org/img/wn/${iconCode}@4x.png`
     : "";
+
+  // wind direction mapping
+  const dir = windDirection(windDeg); // returns { short: "SW", full: "Southwest" }
+  const shortDirection = dir.short;
+  const fullDirectionName = dir.full;
 
   el.innerHTML = `
     <div class="weather-card__header">
@@ -488,48 +565,103 @@ function renderCurrentWeather(payload, location = {}) {
       userLocalFull
     )} (Local time ${escapeHtml(placeTimeOnly)}))</div>
     <div class="weather-card__body">
-      <div class="weather-card_api_icon">
-        ${
-          iconUrl
-            ? `<img class="weather-symbol__img" src="${iconUrl}" alt="${escapeHtml(
-                description || ""
-              )}">`
-            : ""
-        }
-      </div>
-      <div class="weather-card_temperature">
-        <div style="display:flex; align-items:flex-end; gap:8px;">
-          <svg class="icon"><use href="assets/sprite.svg#icon-thermometer"></use></svg>
-          <div class="weather-main-temp">${Math.round(
-            temp
-          )}<span class="temperature__degree">${tempUnit}</span></div>
+      <div class="weather-card__tile">
+        <div class="weather-card__tile-top-row">
+          <div class="weather-card__tile-icon">${
+            iconUrlCurrent
+              ? `<img class="weather-symbol__img"
+          src="${iconUrlCurrent}" alt="${escapeHtml(description || "")}">`
+              : ""
+          }
+          </div>
+          <div class="weather-card__tile-main-info"></div>
+          </div>
+
+        <div class="weather-card__tile-bottom-row">
+         <div class="weather-card__tile-support-info">${escapeHtml(
+           descriptionsList || "No description"
+         )}</div>
         </div>
-        <div class="weather-feels-small">Feels like ${Math.round(
-          feels
-        )}${tempUnit}</div>
-      </div>
-      <div class="weather-card_precipitation">
-        ${precipIconSvg}
-        <div class="precip-value">${precipValue} ${precipUnit}</div>
-      </div>
-      <div class="weather-card_wind">
-        <div style="display:flex; align-items:flex-end; gap:8px;">
-          <svg class="icon"><use href="assets/sprite.svg#icon-wind"></use></svg>
-          <div>
-            <div class="wind-speed"><strong>${windSpeed}</strong></div>
-            <div class="wind-gust-small">(${windGust}) ${windUnit}</div>
+     </div>
+
+      <div class="weather-card__tile">
+        <div class="weather-card__tile-top-row">
+          <div class="weather-card__tile-icon">
+            <svg class="icon">
+              <use href="assets/sprite.svg#icon-thermometer"></use>
+            </svg>
+          </div>
+          <div class="weather-card__tile-main-info">
+            ${Math.round(temp)}<span
+              class="weather-card__temp-unit"
+              aria-label="${escapeHtml(tempUnitLabel)}">${tempUnit}</span>
           </div>
         </div>
-        <div style="height:8px"></div>
-        <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
-          <div class="wind-arrow" style="transform: rotate(${windDeg}deg)"><svg class="icon"><use href="assets/sprite.svg#icon-arrow-down"></use></svg></div>
-          <div class="wind-direction">from ${escapeHtml(
-            windDirection(windDeg)
+        <div class="weather-card__tile-bottom-row">
+          <div class="weather-card__tile-support-info">
+           Feels like ${Math.round(feels)}${tempUnit}
+          </div>
+        </div>
+      </div>
+
+      <div class="weather-card__tile">
+        <div class="weather-card__tile-top-row">
+         <div class="weather-card__tile-icon">${precipIconSvg}</div>
+         <div class="weather-card__tile-main-info">
+           ${precipValue}
+           <abbr
+             title="${escapeHtml(unitLabel(precipUnit))}">${escapeHtml(
+    precipUnit
+  )}</abbr>
+          </div>
+        </div>
+        <div class="weather-card__tile-bottom-row">
+          <div class="weather-card__tile-support-info">${escapeHtml(
+            precipDescriptionsList || "No precipitation"
           )}</div>
+        </div>
+      </div>
+
+      <div class="weather-card__tile">
+        <div class="weather-card__tile-top-row">
+         <div class="weather-card__tile-icon">
+            <svg class="icon"><use href="assets/sprite.svg#icon-wind"></use></svg>
+          </div>
+         <div class="weather-card__tile-main-info">${windSpeed}<abbr title="${escapeHtml(
+    windUnitLabel(windUnit)
+  )}">${escapeHtml(windUnit)}</abbr></div>
+        </div>
+        <div class="weather-card__tile-bottom-row">
+          <div class="weather-card__tile-support-info">
+            (${windGust})<abbr title="${escapeHtml(
+    windUnitLabel(windUnit)
+  )}">${escapeHtml(windUnit)}</abbr>
+          </div>
+          <div class="weather-card__tile-support-info">
+            <div class="weather-card__wind-arrow" data-rotate="${windDeg}">
+              <svg class="icon">
+               <use href="assets/sprite.svg#icon-arrow-down"></use>
+              </svg>
+           </div>
+            from
+           <span aria-label="${escapeHtml(fullDirectionName)}">${escapeHtml(
+    shortDirection
+  )}</span>
+          </div>
         </div>
       </div>
     </div>
   `;
+
+  // apply runtime-only presentation (wind arrow rotation) without inline styles
+  try {
+    const windArrowEl = el.querySelector(".weather-card__wind-arrow");
+    if (windArrowEl) {
+      const rot = windArrowEl.getAttribute("data-rotate");
+      if (rot !== null)
+        windArrowEl.style.transform = `rotate(${Number(rot)}deg)`;
+    }
+  } catch (e) {}
 
   // wire refresh with a short cooldown (10s) to avoid spamming the API
   const refreshBtn = document.getElementById("weather-refresh-btn");

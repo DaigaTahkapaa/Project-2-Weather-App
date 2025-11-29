@@ -290,6 +290,64 @@ main {
   justify-content: space-between;
 }
 
+/* Tile layout: keep top row inline, bottom row stacked and centered */
+.weather-card__tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0; /* allow flex children to shrink */
+}
+
+.weather-card__tile-top-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  white-space: nowrap;
+}
+
+.weather-card__tile-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.weather-card__tile-main-info {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.weather-card__tile-bottom-row {
+  display: flex;
+  flex-direction: column; /* stack support lines vertically */
+  align-items: center; /* center arrow between gusts and direction */
+  gap: 0.25rem;
+}
+
+.weather-card__tile-support-info {
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.65);
+  text-align: center;
+}
+
+/* Wind arrow visual sizing and centering */
+.weather-card__wind-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+.weather-card__wind-arrow .icon {
+  width: 18px;
+  height: 18px;
+}
+
 .weather-card__title {
   font-size: 1.25rem;
   font-weight: 700;
@@ -315,15 +373,6 @@ main {
   padding: 8px;
 }
 
-.weather-card__body {
-  padding: 16px;
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  justify-content: space-around;
-  min-height: 140px;
-}
-
 /* Meta row between header and body */
 .weather-card__meta-row {
   font-size: 0.9rem;
@@ -332,96 +381,13 @@ main {
   padding-left: 10px;
 }
 
-.weather-symbol__img {
-  width: 120px;
-  height: 120px;
-  object-fit: contain;
-}
-
-/* New column groups inside weather-card__body */
-.weather-card_api_icon,
-.weather-card_temperature,
-.weather-card_precipitation,
-.weather-card_wind {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end; /* items sit at the bottom of each column */
-  align-items: center;
-  gap: 6px;
-}
-
-.weather-feels-small,
-.wind-gust-small,
-.precip-value {
-  font-size: 0.9rem;
-  color: #444;
-}
-
-.weather-main-temp {
-  font-size: 2.25rem;
-  font-weight: 700;
-  margin: 0 8px;
-}
-
-.weather-main-temp {
-  font-size: 2.75rem;
-  font-weight: 700;
-  margin: 0 8px;
-}
-
-.weather-feels {
-  font-size: 0.95rem;
-  color: #444;
-}
-
-.weather-details {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.weather-detail {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.weather-detail .icon {
-  width: 24px;
-  height: 24px;
-}
-
-/* Make the right-side body contents lay out in a single row (temp + feels + details)
-   so icons and text don't stack vertically. */
-.weather-card__body > div:nth-child(2) {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.weather-feels {
-  font-size: 0.95rem;
-  color: #444;
-  margin: 0; /* keep it in the row */
-}
-
-/* Refresh button disabled state: dim the icon and prevent pointer actions */
-.weather-card__refresh[disabled] {
-  opacity: 0.8;
+/* Disabled refresh */
+.weather-card__refresh[disabled],
+.weather-card-refresh[disabled] {
+  opacity: 0.6;
   pointer-events: none;
 }
-.weather-card__refresh[disabled] .icon {
+.weather-card__refresh[disabled] .icon,
+.weather-card-refresh[disabled] .icon {
   color: var(--color-bg-light);
-}
-
-.wind-arrow {
-  width: 18px;
-  height: 18px;
-  display: inline-block;
-}
-.wind-direction {
-  font-size: 0.9rem;
-  color: #333;
-  margin-left: 6px;
-  align-self: center;
 }
