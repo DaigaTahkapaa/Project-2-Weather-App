@@ -561,9 +561,11 @@ function renderCurrentWeather(payload, location = {}) {
         </button>
       </div>
     </div>
-    <div class="weather-card__meta-row"><strong>Current weather</strong> (Last updated: ${escapeHtml(
-      userLocalFull
-    )} (Local time ${escapeHtml(placeTimeOnly)}))</div>
+    <div class="weather-card__meta-row"><strong>Current weather - ${escapeHtml(
+      descriptionsList || "No description"
+    )} -</strong> (Last updated: ${escapeHtml(
+    userLocalFull
+  )} (Local time ${escapeHtml(placeTimeOnly)})) </div>
     <div class="weather-card__body">
       <div class="weather-card__tile">
         <div class="weather-card__tile-top-row">
@@ -577,11 +579,6 @@ function renderCurrentWeather(payload, location = {}) {
           <div class="weather-card__tile-main-info"></div>
           </div>
 
-        <div class="weather-card__tile-bottom-row">
-         <div class="weather-card__tile-support-info">${escapeHtml(
-           descriptionsList || "No description"
-         )}</div>
-        </div>
      </div>
 
       <div class="weather-card__tile">
@@ -633,7 +630,7 @@ function renderCurrentWeather(payload, location = {}) {
         </div>
         <div class="weather-card__tile-bottom-row">
           <div class="weather-card__tile-support-info">
-            (${windGust})<abbr title="${escapeHtml(
+            (${windGust}) <abbr title="${escapeHtml(
     windUnitLabel(windUnit)
   )}">${escapeHtml(windUnit)}</abbr>
           </div>
