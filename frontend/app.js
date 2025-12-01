@@ -543,6 +543,140 @@ function renderCurrentWeather(payload, location = {}) {
   const shortDirection = dir.short;
   const fullDirectionName = dir.full;
 
+  // Build a simple, unstyled daily forecast list (using payload.daily)
+  const dailyArr = Array.isArray(payload.daily)
+    ? payload.daily.slice(0, 7)
+    : [];
+  // daily precipitation unit is a total for the day (not per hour)
+  const dailyPrecipUnit = unit === "metric" ? "mm" : "in";
+
+  // helper: compact date like "Mon, Dec 1"
+  function formatCompactDate(dtSeconds) {
+    const d = toLocalDate(dtSeconds, tz);
+    const weekday = new Intl.DateTimeFormat("en-US", {
+      weekday: "short",
+    }).format(d);
+    const month = new Intl.DateTimeFormat("en-US", { month: "short" }).format(
+      d
+    );
+    return `${weekday}, ${month} ${d.getDate()}`;
+  }
+
+  // helper to compare local dates (year/month/day)
+  function isSameLocalDate(a, b) {
+    return (
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+    );
+  }
+
+  // convert mm to inches, rounded to 2 decimals
+  function mmToInches(mm) {
+    return Math.round((Number(mm || 0) / 25.4) * 100) / 100;
+  }
+
+  const nowLocal = toLocalDate(Math.floor(Date.now() / 1000), tz);
+
+  const dailyItemsHtml = dailyArr
+    .map((dItem, idx) => {
+      const dateBase = formatCompactDate(dItem.dt);
+      const itemDate = toLocalDate(dItem.dt, tz);
+      let dateLabel = dateBase;
+      const tomorrow = new Date(nowLocal);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      if (isSameLocalDate(itemDate, nowLocal)) {
+        dateLabel = `Today (${dateBase})`;
+      } else if (isSameLocalDate(itemDate, tomorrow)) {
+        dateLabel = `Tomorrow (${dateBase})`;
+      }
+
+      const iconCode =
+        dItem.weather && dItem.weather[0] && dItem.weather[0].icon;
+      const iconUrl = iconCode
+        ? `https://openweathermap.org/img/wn/${iconCode}.png`
+        : "";
+
+      const tmin =
+        dItem.temp && Number.isFinite(Number(dItem.temp.min))
+          ? Math.round(dItem.temp.min)
+          : 0;
+      const tmax =
+        dItem.temp && Number.isFinite(Number(dItem.temp.max))
+          ? Math.round(dItem.temp.max)
+          : 0;
+
+      // precipitation: prefer explicit rain/snow fields, fallback 0
+      const rainVal = Number(dItem.rain || 0);
+      const snowVal = Number(dItem.snow || 0);
+      const precipRaw = (rainVal || 0) + (snowVal || 0); // mm (daily total)
+      let precipDisplay = "0";
+      if (unit !== "metric") {
+        precipDisplay = String(mmToInches(precipRaw));
+      } else {
+        // keep daily mm as integer
+        precipDisplay = String(Math.round(precipRaw));
+      }
+
+      const pop = dItem.pop != null ? Math.round(Number(dItem.pop) * 100) : 0;
+
+      const wind_s = dItem.wind_speed != null ? dItem.wind_speed : 0;
+      const wind_g = dItem.wind_gust != null ? dItem.wind_gust : 0;
+      const wind_deg = dItem.wind_deg != null ? dItem.wind_deg : 0;
+      const wdir = windDirection(wind_deg);
+
+      return `
+        <li class="daily-weather-list-item">
+          <div class="daily-weather-list-item__date">${escapeHtml(
+            dateLabel
+          )}</div>
+          <div class="daily-weather-list-item__icon">${
+            iconUrl
+              ? `<img src="${iconUrl}" alt="${escapeHtml(
+                  (dItem.weather &&
+                    dItem.weather[0] &&
+                    dItem.weather[0].description) ||
+                    ""
+                )}">`
+              : ""
+          }</div>
+          <div class="daily-weather-list-item__temp">
+            <span class="temp-min">${escapeHtml(String(tmin))}</span>
+            <span class="temp-slash">/</span>
+            <span class="temp-max">${escapeHtml(String(tmax))}</span>
+            <span class="weather-card__temp-unit" aria-label="${escapeHtml(
+              tempUnitLabel
+            )}">${escapeHtml(tempUnit)}</span>
+          </div>
+          <div class="daily-weather-list-item__precip">
+            <span>${escapeHtml(precipDisplay)} <abbr title="${escapeHtml(
+        unitLabel(dailyPrecipUnit)
+      )}">${escapeHtml(dailyPrecipUnit)}</abbr></span>
+          </div>
+          <div class="daily-weather-list-item__pop"><span>${escapeHtml(
+            String(pop)
+          )} %</span></div>
+          <div class="daily-weather-list-item__wind">
+            <span class="wind-speed">${escapeHtml(
+              String(wind_s)
+            )} <abbr title="${escapeHtml(
+        windUnitLabel(windUnit)
+      )}">${escapeHtml(windUnit)}</abbr></span>
+            <div class="wind-arrow" data-rotate="${escapeHtml(
+              String(wind_deg)
+            )}">
+              <svg class="icon"><use href="assets/sprite.svg#icon-arrow-down"></use></svg>
+            </div>
+            <span class="wind-dir">from <span aria-label="${escapeHtml(
+              wdir.full
+            )}">${escapeHtml(wdir.short)}</span></span>
+          </div>
+          <div class="daily-weather-list-item__h_button"><button class="h-btn"><div>hourly forecast</div></button></div>
+        </li>
+      `;
+    })
+    .join("\n");
+
   el.innerHTML = `
     <div class="weather-card__header">
       <div class="weather-card__header-left">
@@ -649,6 +783,28 @@ function renderCurrentWeather(payload, location = {}) {
       </div>
     </div>
   `;
+
+  // Append the daily forecast list (unstyled per request)
+  try {
+    const dailyHtml = `
+      <div class="daily-weather-list escape-layout-container-padding">
+        <div class="daily-weather-list__headers">
+          <div class="daily-weather-list__forecast-headers">
+            <span class="daily-weather-list__header">Temp. min/max</span>
+            <span class="daily-weather-list__header">Precip.</span>
+            <span class="daily-weather-list__header">- Precip. chance</span>
+            <span class="daily-weather-list__header">Wind</span>
+          </div>
+        </div>
+        <ol class="daily-weather-list__daily">
+          ${dailyItemsHtml}
+        </ol>
+      </div>
+    `;
+    el.insertAdjacentHTML("beforeend", dailyHtml);
+  } catch (e) {
+    console.error("Failed to render daily forecast:", e);
+  }
 
   // apply runtime-only presentation (wind arrow rotation) without inline styles
   try {
