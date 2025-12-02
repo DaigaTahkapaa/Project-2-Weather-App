@@ -516,3 +516,86 @@ main {
 .temp-hot {
   color: var(--color-temp-hot);
 } /* above +15 */
+
+/* ─── Responsive: small screens ─── */
+@media (max-width: 700px) {
+  /* Hide header row on small screens */
+  .daily-weather-list__headers {
+    display: none;
+  }
+
+  /* Switch from 7-column grid to block container */
+  .daily-weather-list {
+    display: block;
+  }
+
+  /* Each daily item: 3-column grid
+     Row 1: date spans all 3
+     Row 2: icon | temp | temp
+     Row 3: icon | prec | pop
+     Row 4: wind spans all 3
+     Row 5: btn spans all 3 (if present) */
+  .daily-weather-list-item {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr;
+    grid-template-areas:
+      "date  date  date"
+      "icon  temp  temp"
+      "icon  prec  pop"
+      "wind  wind  wind"
+      "btn   btn   btn";
+    gap: 0.25rem 0.5rem;
+    padding: 0.75rem 1rem;
+    align-items: center;
+  }
+
+  .daily-weather-list-item__date {
+    grid-area: date;
+    margin-left: 0;
+    text-align: left;
+    font-size: 1.1rem;
+  }
+  .daily-weather-list-item__icon {
+    grid-area: icon;
+    text-align: center;
+  }
+  .daily-weather-list-item__icon img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .daily-weather-list-item__temp {
+    grid-area: temp;
+    text-align: left;
+  }
+  .daily-weather-list-item__precip {
+    grid-area: prec;
+    text-align: left;
+  }
+  .daily-weather-list-item__pop {
+    grid-area: pop;
+    text-align: left;
+  }
+
+  .daily-weather-list-item__wind {
+    grid-area: wind;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .daily-weather-list-item__h_button {
+    grid-area: btn;
+    text-align: center;
+  }
+
+  /* When no hourly button, omit that row */
+  .daily-weather-list-item:not(:has(.daily-weather-list-item__h_button)) {
+    grid-template-areas:
+      "date  date  date"
+      "icon  temp  temp"
+      "icon  prec  pop"
+      "wind  wind  wind";
+  }
+}
