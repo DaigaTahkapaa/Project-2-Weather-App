@@ -463,8 +463,8 @@ function renderCurrentWeather(payload, location = {}) {
   const snowVal =
     (current.snow && (current.snow["1h"] || current.snow["1h"])) || 0;
   const precip = (Number(rainVal) || 0) + (Number(snowVal) || 0);
-  const windSpeed = current.wind_speed;
-  const windGust = current.wind_gust || 0;
+  const windSpeed = Math.round(current.wind_speed);
+  const windGust = Math.round(current.wind_gust || 0);
   const windDeg = current.wind_deg || 0;
 
   const unit = getSelectedUnit() || "metric";
@@ -475,10 +475,11 @@ function renderCurrentWeather(payload, location = {}) {
   const precipUnit = unit === "metric" ? "mm/h" : "in/h";
   let precipValue = Number(precip) || 0;
   if (unit !== "metric") {
-    // convert mm to inches
-    precipValue = Math.round((precipValue / 25.4) * 100) / 100;
+    // convert mm to inches, 1 decimal place
+    precipValue = (precipValue / 25.4).toFixed(1);
   } else {
-    precipValue = Math.round(precipValue);
+    // metric: 1 decimal place
+    precipValue = precipValue.toFixed(1);
   }
   const precipIconSvg = `<svg class="icon"><use href="assets/sprite.svg#${precipIconName}"></use></svg>`;
 
@@ -513,6 +514,18 @@ function renderCurrentWeather(payload, location = {}) {
       default:
         return String(u || "");
     }
+  }
+
+  // Temperature color class based on value (°C for metric, converted for imperial)
+  // Returns CSS class name for temperature coloring
+  function tempColorClass(tempValue, isMetric = true) {
+    // Convert to Celsius if imperial for consistent thresholds
+    const celsius = isMetric ? tempValue : ((tempValue - 32) * 5) / 9;
+    if (celsius < -10) return "temp-freezing";
+    if (celsius < 0) return "temp-cold";
+    if (celsius === 0) return "temp-neutral";
+    if (celsius <= 15) return "temp-warm";
+    return "temp-hot";
   }
 
   const nameText = location.name || "";
@@ -551,40 +564,47 @@ function renderCurrentWeather(payload, location = {}) {
   const dailyPrecipUnit = unit === "metric" ? "mm" : "in";
 
   // helper: compact date like "Mon, Dec 1"
+  // Note: toLocalDate creates a Date whose UTC values represent the target timezone,
+  // so we format in UTC to get correct weekday/month/day.
   function formatCompactDate(dtSeconds) {
     const d = toLocalDate(dtSeconds, tz);
     const weekday = new Intl.DateTimeFormat("en-US", {
       weekday: "short",
+      timeZone: "UTC",
     }).format(d);
-    const month = new Intl.DateTimeFormat("en-US", { month: "short" }).format(
-      d
-    );
-    return `${weekday}, ${month} ${d.getDate()}`;
+    const month = new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      timeZone: "UTC",
+    }).format(d);
+    return `${weekday}, ${month} ${d.getUTCDate()}`;
   }
 
   // helper to compare local dates (year/month/day)
+  // Note: toLocalDate creates a Date whose UTC values represent the target timezone,
+  // so we must use getUTC* methods for comparison.
   function isSameLocalDate(a, b) {
     return (
-      a.getFullYear() === b.getFullYear() &&
-      a.getMonth() === b.getMonth() &&
-      a.getDate() === b.getDate()
+      a.getUTCFullYear() === b.getUTCFullYear() &&
+      a.getUTCMonth() === b.getUTCMonth() &&
+      a.getUTCDate() === b.getUTCDate()
     );
   }
 
-  // convert mm to inches, rounded to 2 decimals
+  // convert mm to inches, 1 decimal place
   function mmToInches(mm) {
-    return Math.round((Number(mm || 0) / 25.4) * 100) / 100;
+    return (Number(mm || 0) / 25.4).toFixed(1);
   }
 
   const nowLocal = toLocalDate(Math.floor(Date.now() / 1000), tz);
+  // Calculate "tomorrow" using UTC methods since toLocalDate stores target timezone in UTC
+  const tomorrow = new Date(nowLocal.getTime());
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 
   const dailyItemsHtml = dailyArr
     .map((dItem, idx) => {
       const dateBase = formatCompactDate(dItem.dt);
       const itemDate = toLocalDate(dItem.dt, tz);
       let dateLabel = dateBase;
-      const tomorrow = new Date(nowLocal);
-      tomorrow.setDate(tomorrow.getDate() + 1);
       if (isSameLocalDate(itemDate, nowLocal)) {
         dateLabel = `Today (${dateBase})`;
       } else if (isSameLocalDate(itemDate, tomorrow)) {
@@ -610,18 +630,19 @@ function renderCurrentWeather(payload, location = {}) {
       const rainVal = Number(dItem.rain || 0);
       const snowVal = Number(dItem.snow || 0);
       const precipRaw = (rainVal || 0) + (snowVal || 0); // mm (daily total)
-      let precipDisplay = "0";
+      let precipDisplay = "0.0";
       if (unit !== "metric") {
         precipDisplay = String(mmToInches(precipRaw));
       } else {
-        // keep daily mm as integer
-        precipDisplay = String(Math.round(precipRaw));
+        // metric: 1 decimal place
+        precipDisplay = precipRaw.toFixed(1);
       }
 
       const pop = dItem.pop != null ? Math.round(Number(dItem.pop) * 100) : 0;
 
-      const wind_s = dItem.wind_speed != null ? dItem.wind_speed : 0;
-      const wind_g = dItem.wind_gust != null ? dItem.wind_gust : 0;
+      const wind_s =
+        dItem.wind_speed != null ? Math.round(dItem.wind_speed) : 0;
+      const wind_g = dItem.wind_gust != null ? Math.round(dItem.wind_gust) : 0;
       const wind_deg = dItem.wind_deg != null ? dItem.wind_deg : 0;
       const wdir = windDirection(wind_deg);
 
@@ -645,10 +666,16 @@ function renderCurrentWeather(payload, location = {}) {
                 )}">`
               : ""
           }</div>
-          <div class="daily-weather-list-item__temp">
-            <span class="temp-min">${escapeHtml(String(tmin))}</span>
-            <span class="temp-slash">/</span>
-            <span class="temp-max">${escapeHtml(String(tmax))}</span>
+          <div class="daily-weather-list-item__temp"><strong>
+            <span class="temp-min ${tempColorClass(
+              tmin,
+              unit === "metric"
+            )}">${escapeHtml(String(tmin))}</span></strong>
+            <span class="temp-slash">/<strong></span>
+            <span class="temp-max ${tempColorClass(
+              tmax,
+              unit === "metric"
+            )}">${escapeHtml(String(tmax))}</span></strong>
             <span class="weather-card__temp-unit" aria-label="${escapeHtml(
               tempUnitLabel
             )}">${escapeHtml(tempUnit)}</span>
@@ -731,14 +758,20 @@ function renderCurrentWeather(payload, location = {}) {
               <use href="assets/sprite.svg#icon-thermometer"></use>
             </svg>
           </div>
-          <div class="weather-card__tile-main-info">
+          <div class="weather-card__tile-main-info ${tempColorClass(
+            Math.round(temp),
+            unit === "metric"
+          )}">
             ${Math.round(temp)}<span
               class="weather-card__temp-unit"
               aria-label="${escapeHtml(tempUnitLabel)}">${tempUnit}</span>
           </div>
         </div>
         <div class="weather-card__tile-bottom-row">
-          <div class="weather-card__tile-support-info">
+          <div class="weather-card__tile-support-info ${tempColorClass(
+            Math.round(feels),
+            unit === "metric"
+          )}">
            Feels like ${Math.round(feels)}${tempUnit}
           </div>
         </div>

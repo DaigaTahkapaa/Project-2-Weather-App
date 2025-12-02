@@ -18,7 +18,14 @@
 
   /* ⚠️ Status colors */
   --color-warning: #ec6e4c; /* warning / accent orange-red */
-  --color-warning-bright: #ff7f50; /* optional brighter variant */
+  --color-warning-bright: #ff7f50; /* brighter variant */
+
+  /* 🌡️ Temperature colors */
+  --color-temp-freezing: #0050a0; /* darker blue: below -10 */
+  --color-temp-cold: #0099ff; /* medium blue (primary-1): -10 to -1 */
+  --color-temp-neutral: #444444; /* gray: 0 */
+  --color-temp-warm: #ff7043; /* coral (accent-3): +1 to +15 */
+  --color-temp-hot: #ff1a1a; /* red: above +15 */
 }
 
 * {
@@ -467,7 +474,7 @@ main {
   background: var(--color-bg-white);
   border-radius: 12px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
-  margin: 0.75rem; /* gap so card bg peeks around it */
+  margin: 0.3rem 0.75rem; /* gap so card bg peeks around it */
   padding: 0;
 }
 
@@ -492,3 +499,20 @@ main {
   align-items: center;
   gap: 0.25rem;
 }
+
+/* Temperature color classes based on value ranges */
+.temp-freezing {
+  color: var(--color-temp-freezing);
+} /* below -10 */
+.temp-cold {
+  color: var(--color-temp-cold);
+} /* -10 to -1 */
+.temp-neutral {
+  color: var(--color-temp-neutral);
+} /* 0 */
+.temp-warm {
+  color: var(--color-temp-warm);
+} /* +1 to +15 */
+.temp-hot {
+  color: var(--color-temp-hot);
+} /* above +15 */
