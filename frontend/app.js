@@ -594,7 +594,7 @@ function renderCurrentWeather(payload, location = {}) {
       const iconCode =
         dItem.weather && dItem.weather[0] && dItem.weather[0].icon;
       const iconUrl = iconCode
-        ? `https://openweathermap.org/img/wn/${iconCode}.png`
+        ? `https://openweathermap.org/img/wn/${iconCode}@2x.png`
         : "";
 
       const tmin =
@@ -624,6 +624,11 @@ function renderCurrentWeather(payload, location = {}) {
       const wind_g = dItem.wind_gust != null ? dItem.wind_gust : 0;
       const wind_deg = dItem.wind_deg != null ? dItem.wind_deg : 0;
       const wdir = windDirection(wind_deg);
+
+      // only show hourly button for Today or Tomorrow
+      const showHourly =
+        isSameLocalDate(itemDate, nowLocal) ||
+        isSameLocalDate(itemDate, tomorrow);
 
       return `
         <li class="daily-weather-list-item">
@@ -665,13 +670,17 @@ function renderCurrentWeather(payload, location = {}) {
             <div class="wind-arrow" data-rotate="${escapeHtml(
               String(wind_deg)
             )}">
-              <svg class="icon"><use href="assets/sprite.svg#icon-arrow-down"></use></svg>
+              <svg class="icon" style="transform: rotate(${wind_deg}deg)"><use href="assets/sprite.svg#icon-arrow-down"></use></svg>
             </div>
             <span class="wind-dir">from <span aria-label="${escapeHtml(
               wdir.full
             )}">${escapeHtml(wdir.short)}</span></span>
           </div>
-          <div class="daily-weather-list-item__h_button"><button class="h-btn"><div>hourly forecast</div></button></div>
+          ${
+            showHourly
+              ? `<div class="daily-weather-list-item__h_button"><button class="h-btn" data-day-index="${idx}"><div>hourly forecast</div></button></div>`
+              : ""
+          }
         </li>
       `;
     })
@@ -760,7 +769,7 @@ function renderCurrentWeather(payload, location = {}) {
           </div>
          <div class="weather-card__tile-main-info">${windSpeed}<abbr title="${escapeHtml(
     windUnitLabel(windUnit)
-  )}">${escapeHtml(windUnit)}</abbr></div>
+  )}"> ${escapeHtml(windUnit)}</abbr></div>
         </div>
         <div class="weather-card__tile-bottom-row">
           <div class="weather-card__tile-support-info">
@@ -769,8 +778,8 @@ function renderCurrentWeather(payload, location = {}) {
   )}">${escapeHtml(windUnit)}</abbr>
           </div>
           <div class="weather-card__tile-support-info">
-            <div class="weather-card__wind-arrow" data-rotate="${windDeg}">
-              <svg class="icon">
+            <div class="weather-card__wind-arrow">
+              <svg class="icon" style="transform: rotate(${windDeg}deg)">
                <use href="assets/sprite.svg#icon-arrow-down"></use>
               </svg>
            </div>
@@ -787,12 +796,14 @@ function renderCurrentWeather(payload, location = {}) {
   // Append the daily forecast list (unstyled per request)
   try {
     const dailyHtml = `
-      <div class="daily-weather-list escape-layout-container-padding">
+      <div class="weather-card__meta-row"><strong>Forecast for 7 days</strong></div>
+      <div class="daily-weather-list">
         <div class="daily-weather-list__headers">
           <div class="daily-weather-list__forecast-headers">
+            <span class="daily-weather-list__header">Weather</span>
             <span class="daily-weather-list__header">Temp. min/max</span>
             <span class="daily-weather-list__header">Precip.</span>
-            <span class="daily-weather-list__header">- Precip. chance</span>
+            <span class="daily-weather-list__header">Precip. chance</span>
             <span class="daily-weather-list__header">Wind</span>
           </div>
         </div>
@@ -805,16 +816,6 @@ function renderCurrentWeather(payload, location = {}) {
   } catch (e) {
     console.error("Failed to render daily forecast:", e);
   }
-
-  // apply runtime-only presentation (wind arrow rotation) without inline styles
-  try {
-    const windArrowEl = el.querySelector(".weather-card__wind-arrow");
-    if (windArrowEl) {
-      const rot = windArrowEl.getAttribute("data-rotate");
-      if (rot !== null)
-        windArrowEl.style.transform = `rotate(${Number(rot)}deg)`;
-    }
-  } catch (e) {}
 
   // wire refresh with a short cooldown (10s) to avoid spamming the API
   const refreshBtn = document.getElementById("weather-refresh-btn");

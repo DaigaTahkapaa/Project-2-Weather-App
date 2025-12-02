@@ -147,6 +147,23 @@ main {
   outline-offset: 2px;
 }
 
+/* Hourly forecast button - match `#searchBtn` styling */
+.h-btn {
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-accent-2);
+  color: var(--color-text-dark);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+.h-btn:hover,
+.h-btn:focus-visible {
+  background: var(--color-accent-3);
+  outline-offset: 2px;
+}
+
 /* Unit toggle (°C / °F) */
 .unit-toggle {
   display: flex;
@@ -282,7 +299,7 @@ main {
   background: linear-gradient(
     135deg,
     var(--color-primary-1),
-    var(--color-primary-2)
+    var(--color-accent-2)
   );
   color: var(--color-text-dark);
   display: flex;
@@ -297,9 +314,19 @@ main {
   gap: 1rem;
   align-items: center;
   justify-content: space-around;
+  /* Card-like styling (matches .controls-panel) */
+  background: var(--color-bg-white);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
+  margin: 0.75rem; /* gap so card bg peeks around it */
+  padding: 1rem;
 }
 
-/* Tile layout: keep top row inline, bottom row stacked and centered */
+.weather-symbol__img {
+  width: 150px;
+  height: 150px;
+}
+
 .weather-card__tile {
   display: flex;
   flex-direction: column; /* stack top-row and bottom-row vertically */
@@ -335,7 +362,8 @@ main {
 }
 
 /* Wind arrow visual sizing and centering */
-.weather-card__wind-arrow {
+.weather-card__wind-arrow,
+.wind-arrow {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -347,13 +375,14 @@ main {
   height: 18px;
 }
 .weather-card__title {
-  font-size: 1.25rem;
+  font-size: 1.6rem;
   font-weight: 700;
   margin: 0;
   color: var(--color-text-dark);
 }
 
 .weather-card__subtitle {
+  font-size: 1.2rem;
   padding: 5px 10x;
   color: var(--color-text-dark);
   font-weight: 600;
@@ -373,9 +402,9 @@ main {
 
 /* Meta row between header and body */
 .weather-card__meta-row {
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   background: var(--color-primary-2);
-  color: var(--color-bg-dark);
+  color: var(--color-text-dark);
   padding-left: 10px;
 }
 
@@ -388,4 +417,78 @@ main {
 .weather-card__refresh[disabled] .icon,
 .weather-card-refresh[disabled] .icon {
   color: var(--color-bg-light);
+}
+
+/* Daily forecast list — single shared grid for headers + items */
+.daily-weather-list {
+  display: grid;
+  grid-template-columns: 200px 100px 120px 100px 120px minmax(140px, 1fr) minmax(
+      100px,
+      1fr
+    );
+  column-gap: 0.5rem;
+}
+
+.daily-weather-list__headers {
+  display: contents; /* children flow into parent grid */
+}
+
+.daily-weather-list__forecast-headers {
+  grid-column: 2 / 7; /* span columns 2–6 (Weather → Wind) */
+  display: grid;
+  grid-template-columns: subgrid; /* inherit column sizes from parent */
+  position: sticky;
+  top: 0;
+  background-color: var(--color-bg-light);
+  padding: 1rem 0 0 0;
+}
+
+.daily-weather-list__header {
+  font-weight: bold;
+  text-align: center;
+  justify-self: center;
+}
+
+/* The <ol> wrapper also uses display: contents so <li> items flow into the grid */
+.daily-weather-list__daily {
+  display: contents;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Daily items span all 7 columns as a subgrid row */
+.daily-weather-list-item {
+  grid-column: 1 / -1; /* span full width */
+  display: grid;
+  grid-template-columns: subgrid; /* inherit column sizes from parent */
+  align-items: center;
+  padding: 0;
+  background: var(--color-bg-white);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
+  margin: 0.75rem; /* gap so card bg peeks around it */
+  padding: 0;
+}
+
+.daily-weather-list-item__date {
+  font-weight: 600;
+  margin-left: 1rem;
+}
+
+.daily-weather-list-item__icon,
+.daily-weather-list-item__temp,
+.daily-weather-list-item__precip,
+.daily-weather-list-item__pop,
+.daily-weather-list-item__wind,
+.daily-weather-list-item__h_button {
+  text-align: center;
+}
+
+/* Wind column has multiple elements, so flex them neatly */
+.daily-weather-list-item__wind {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
 }
