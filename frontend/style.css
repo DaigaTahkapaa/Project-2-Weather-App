@@ -220,13 +220,6 @@ main {
   font-weight: 600;
 }
 
-#grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 14px;
-  margin: 12px 0;
-}
-
 .saved-grid {
   display: grid;
   gap: 12px;
@@ -416,13 +409,11 @@ main {
 }
 
 /* Disabled refresh */
-.weather-card__refresh[disabled],
-.weather-card-refresh[disabled] {
+.weather-card__refresh[disabled] {
   opacity: 0.6;
   pointer-events: none;
 }
-.weather-card__refresh[disabled] .icon,
-.weather-card-refresh[disabled] .icon {
+.weather-card__refresh[disabled] .icon {
   color: var(--color-bg-light);
 }
 
@@ -597,5 +588,175 @@ main {
       "icon  temp  temp"
       "icon  prec  pop"
       "wind  wind  wind";
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   HOURLY FORECAST MODAL
+   ───────────────────────────────────────────────────────────────────── */
+
+/* Modal backdrop and container */
+.modal-dialog {
+  border: none;
+  border-radius: 12px;
+  padding: 0;
+  max-width: 90vw;
+  max-height: 85vh;
+  width: 600px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+/* Backdrop styling when modal is open */
+.modal-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+/* Modal header */
+.modal-dialog__header {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-1),
+    var(--color-accent-2)
+  );
+  padding: 1rem 1.25rem;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.modal-dialog__header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.modal-dialog__header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-dark);
+}
+
+/* Close button */
+.modal-dialog__close-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.modal-dialog__close-button:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.modal-dialog__close-button svg {
+  width: 24px;
+  height: 24px;
+  color: var(--color-text-dark);
+}
+
+/* Hourly weather dialog body */
+.hourly-weather-dialog {
+  padding: 1rem;
+  overflow-y: auto;
+  max-height: calc(85vh - 70px);
+  background: var(--color-bg-white);
+}
+
+.hourly-weather-dialog__table {
+  overflow-x: auto;
+}
+
+/* Hourly weather table */
+.hourly-weather-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.hourly-weather-table caption {
+  text-align: left;
+  font-weight: 600;
+  padding: 0.5rem 0;
+  font-size: 1rem;
+  color: var(--color-text-dark);
+}
+
+.hourly-weather-table th,
+.hourly-weather-table td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-bg-light);
+}
+
+.hourly-weather-table th {
+  background: var(--color-bg-lighter);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  color: var(--color-text-dark);
+}
+
+.hourly-weather-table tbody tr:hover {
+  background: var(--color-bg-lighter);
+}
+
+/* Weather icon in table */
+.hourly-weather-table__icon {
+  width: 40px;
+  height: 40px;
+  vertical-align: middle;
+}
+
+/* Wind cell with arrow */
+.hourly-weather-table__wind {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.hourly-weather-table__wind-arrow {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+}
+
+.hourly-weather-table__wind-arrow .icon {
+  width: 100%;
+  height: 100%;
+}
+
+/* Responsive: stack table on very small screens */
+@media (max-width: 500px) {
+  .modal-dialog {
+    width: 95vw;
+    max-height: 90vh;
+  }
+
+  .hourly-weather-dialog {
+    max-height: calc(90vh - 70px);
+  }
+
+  .hourly-weather-table {
+    font-size: 0.85rem;
+  }
+
+  .hourly-weather-table th,
+  .hourly-weather-table td {
+    padding: 0.5rem 0.4rem;
+  }
+
+  .hourly-weather-table__icon {
+    width: 32px;
+    height: 32px;
   }
 }

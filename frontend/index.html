@@ -205,8 +205,14 @@
         aria-live="polite"
       ></section>
 
-      <!-- JS will insert country cards into the grid section dynamically -->
-      <section id="grid"></section>
+      <!-- Hourly Forecast Modal Dialog -->
+      <dialog
+        id="hourly-modal"
+        class="modal-dialog"
+        aria-labelledby="hourly-modal-title"
+      >
+        <!-- Modal content will be populated by JavaScript -->
+      </dialog>
     </main>
     <!-- Load behaviour from app.js. Using `defer` ensures the script runs after the page is parsed -->
     <script src="app.js" defer></script>
