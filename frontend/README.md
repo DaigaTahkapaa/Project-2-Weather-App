@@ -28,6 +28,16 @@ Timestamps:
 
 ---
 
+## Technologies Used
+
+- **Frontend:** Vanilla JavaScript (ES6+), HTML5, CSS3 (Grid, Custom Properties)
+- **Backend:** Node.js, Express
+- **APIs:** OpenWeatherMap (Geocoding, One Call 3.0, Reverse Geocoding)
+- **Deployment:** Render.com
+- **Icons:** Custom SVG sprite, svg icons from [Phosphor](https://phosphoricons.com/)
+
+---
+
 ## Key Features
 
 - **City Search with Autocomplete:** Type a city name and get suggestions from the [Geocoding API](https://openweathermap.org/api/geocoding-api). Handles duplicates and shows state/country to tell apart locations with same name.
@@ -103,13 +113,13 @@ Navigate to `http://localhost:3000` to use the app.
 ```
 Project-2-Weather-App/
 ├── frontend/
-│   ├── index.html      # Main HTML page
+|   ├── assets/
+|   |   └──sprite.svg   # SVG sprite for icons
 │   ├── app.js          # All frontend JavaScript
-│   ├── style.css       # Styles with CSS custom properties
-│   ├── assets/
-|   |   ├──sprite.svg   # SVG sprite for icons
-|   |   └──
-│   └── README.md       # This file
+│   ├── index.html      # Main HTML page
+│   ├── README.md       # This file
+│   └── style.css       # Styles with CSS custom properties
+├── screenshots/        # Screenshots for README
 ├── server/
 │   ├── index.js        # Express proxy server
 │   ├── package.json    # Server dependencies
@@ -121,9 +131,40 @@ Project-2-Weather-App/
 
 ## Screenshots
 
-![Desktop view](screenshots/ui-desktop.png)
-![Mobile view](screenshots/ui-mobile.png)
-![Favorites](screenshots/ui-favorites.png)
+**Initial view — Freshly opened app with search bar ready.**
+| Desktop | Mobile |
+|---------|--------|
+| ![Initial desktop](/screenshots/Desktop-initial.png) | ![Initial mobile](/screenshots/Mobile-initial.jfif) |
+
+**Search in action — Entering a location to fetch weather data.**
+| Desktop | Mobile |
+|---------|--------|
+| ![Search desktop](/screenshots/Desktop-search.png) | ![Search mobile](/screenshots/Mobile-search.jfif) |
+
+**Current weather card — Snapshot of temperature, conditions, and times for the selected location.**
+| Desktop | Mobile |
+|---------|--------|
+| ![Current desktop](/screenshots/Desktop-current-weather-card.png) | ![Current mobile](/screenshots/Mobile-current.jfif) |
+
+**7‑day forecast — Extended outlook showing daily highs and lows.**
+| Desktop | Mobile |
+|---------|--------|
+| ![7-day desktop](/screenshots/Desktop-7-day-forcast.png) | ![7-day mobile](/screenshots/Mobile-daily.jfif) |
+
+**Hourly forecast — Detailed breakdown of temperature and conditions throughout the day.**
+| Desktop | Mobile |
+|---------|--------|
+| ![Hourly desktop](/screenshots/Desktop-h-forecast-modal.png) | ![Hourly mobile](/screenshots/Mobile-modal.jfif) |
+
+**Favorites saved — Starred locations displayed with mini cards and custom temperature color scale.**
+| Desktop | Mobile |
+|---------|--------|
+| ![Favorites desktop](/screenshots/Desktop-Favourites.png) | ![Favorites mobile](/screenshots/Mobile-favorites.jfif) |
+
+**Unit toggle — Switching between °C and °F.**
+| Desktop | Mobile |
+|---------|--------|
+| ![Unit toggle desktop](/screenshots/Desktop-imperial.png) | ![Unit toggle mobile](/screenshots/Mobile-imperial.jfif) |
 
 ---
 
@@ -168,10 +209,10 @@ Project-2-Weather-App/
 |-----------|--------|-------|
 | **Structure** | 2/2 | Frontend/server separation, organized sections in app.js with comments |
 | **Naming and comments** | 1/1 | Descriptive function names, JSDoc comments, section headers |
-| **Logic and flow** | 1/1 | Functions are focused, data flow is clear (fetch → parse → render) |
-| **Defensive coding** | 1/1 | Null checks, try/catch blocks, safe array access |
+| **Logic and flow** | 0.5/1 | Functions are focused, data flow is clear (fetch → parse → render) |
+| **Defensive coding** | 0.5/1 | Null checks, try/catch blocks, safe array access |
 
-**Subtotal:** 5/5
+**Subtotal:** 4/5
 
 ### 5. Documentation (2 points)
 
@@ -195,7 +236,7 @@ Project-2-Weather-App/
 
 ---
 
-### **Total Self-Assessment: 35/35**
+### **Total Self-Assessment: 34/35**
 
 ---
 
@@ -219,6 +260,11 @@ Building this weather app reinforced several key concepts:
 
 ### Known Limitations
 
+- **Location Suggestions:** Currently powered by the OpenWeather Geocoding API. Suggestions only appear for exact string matches—partial or misspelled inputs return no results. For example, typing "Rovanie" yields nothing; you must enter the full "Rovaniemi" to see it suggested.
+- **Duplicate Location Handling:** Locations with the same name, country, and state but slightly different coordinates are deduplicated by keeping only the first result. Without a map picker, there's no practical way to distinguish them—this was deemed acceptable for the project scope.
+- **Responsive Layout:** Works on desktop and mobile screens, but not perfect. Ran out of time to tweak details for smaller screen layouts. Behavior is acceptable (tested on personal phones and browser developer tools).
+- **Accessibility (work in progress):** Basic semantic markup and ARIA labels are present, but the implementation hasn't been thoroughly tested. Keyboard navigation and screen-reader support would need deeper review with more time.
+- **Render Cold Starts:** On Render's free tier, backend services spin down after inactivity. The next request triggers a cold start, which can delay responses by 30–60 seconds. This makes the app feel sluggish if it hasn't been used recently.
 - **No offline support:** The app requires an internet connection. A service worker could cache recent weather data.
 - **API rate limits:** OpenWeatherMap's free tier has call limits. Heavy usage could hit these limits.
 - **No weather alerts:** The One Call API provides alerts, but they're not displayed.
@@ -227,19 +273,17 @@ Building this weather app reinforced several key concepts:
 
 ### If I Had More Time
 
-1. Add weather alerts display
-2. Implement dark/light theme toggle
-3. Add a "recent searches" history
-4. Show weather maps (OpenWeatherMap has a maps API)
-5. Add proper TypeScript for better type safety
-6. Set up ESLint/Prettier with pre-commit hooks
+1. Implement a more flexible autocomplete solution with typo-tolerant, progressive suggestions
+2. Add a map picker for selecting between duplicate locations with different coordinates
+3. Fine-tune responsive layouts for smaller screens
+4. Thoroughly test and improve accessibility (keyboard navigation, screen-reader compatibility)
+5. Add drag-and-drop to reorder favorite cards
+6. Add weather alerts display
+7. Implement dark/light theme toggle
+8. Add a "recent searches" history
+9. Show weather maps (OpenWeatherMap has a maps API)
+10. Add proper TypeScript for better type safety
+11. Set up ESLint/Prettier with pre-commit hooks
 
 ---
 
-## Technologies Used
-
-- **Frontend:** Vanilla JavaScript (ES6+), HTML5, CSS3 (Grid, Custom Properties)
-- **Backend:** Node.js, Express
-- **APIs:** OpenWeatherMap (Geocoding, One Call 3.0, Reverse Geocoding)
-- **Deployment:** Render.com
-- **Icons:** Custom SVG sprite

@@ -1510,6 +1510,99 @@ function renderHourlyModal(dayIndex) {
 }
 
 /**
+ * Updates a single saved card's content without re-rendering all cards.
+ * This prevents other cards' local times from updating when one card is refreshed.
+ * @param {HTMLElement} card - The card element to update
+ * @param {string} key - The favorite key
+ * @param {Object} fav - The favorite data object
+ */
+function updateSavedCard(card, key, fav) {
+  const unit = getSelectedUnit() || "metric";
+  const weather = fav.weatherData;
+
+  if (weather && weather.current) {
+    const current = weather.current;
+
+    // Update icon
+    const iconCode =
+      current.weather && current.weather[0] && current.weather[0].icon;
+    const iconUrl = iconCode
+      ? `https://openweathermap.org/img/wn/${iconCode}@2x.png`
+      : "";
+    const iconEl = card.querySelector(".saved-card__icon img");
+    if (iconEl && iconUrl) {
+      iconEl.src = iconUrl;
+    }
+
+    // Update temperature
+    const temp = Math.round(current.temp);
+    const tempUnit = unit === "metric" ? "°C" : "°F";
+    const tempEl = card.querySelector(".saved-card__temp");
+    if (tempEl) {
+      // Remove old temp color classes and add new one
+      tempEl.className = `saved-card__temp ${tempColorClass(
+        temp,
+        unit === "metric"
+      )}`;
+      const tempUnitEl = tempEl.querySelector(".saved-card__temp-unit");
+      const tempUnitLabel =
+        tempUnit === "°C" ? "degrees Celsius" : "degrees Fahrenheit";
+      tempEl.innerHTML = `${escapeHtml(
+        String(temp)
+      )}<span class="saved-card__temp-unit" aria-label="${escapeHtml(
+        tempUnitLabel
+      )}">${escapeHtml(tempUnit)}</span>`;
+    }
+
+    // Update feels like
+    const feelsLike = Math.round(current.feels_like);
+    const feelsLikeEl = card.querySelector(".saved-card__feels-like");
+    if (feelsLikeEl) {
+      feelsLikeEl.className = `saved-card__feels-like ${tempColorClass(
+        feelsLike,
+        unit === "metric"
+      )}`;
+      feelsLikeEl.textContent = `Feels like ${feelsLike}${tempUnit}`;
+    }
+
+    // Update weather description
+    const weatherDesc =
+      (current.weather &&
+        current.weather[0] &&
+        current.weather[0].description) ||
+      "";
+    const descEl = card.querySelector(".saved-card__desc");
+    if (descEl) {
+      descEl.textContent = weatherDesc || "—";
+    }
+
+    // Update wind
+    const windSpeed = Math.round(current.wind_speed || 0);
+    const windUnit = unit === "metric" ? "m/s" : "mph";
+    const windEl = card.querySelector(".saved-card__wind span");
+    if (windEl) {
+      windEl.textContent = `${windSpeed} ${windUnit}`;
+    }
+  }
+
+  // Update last updated time (this card only)
+  const lastUpdatedEl = card.querySelector(".saved-card__updated");
+  if (lastUpdatedEl) {
+    lastUpdatedEl.textContent = formatLastUpdatedTime(fav.lastUpdated);
+  }
+
+  // Update local time for this card only
+  const localTimeEl = card.querySelector(".saved-card__local-time");
+  if (localTimeEl && weather && typeof weather.timezone_offset === "number") {
+    const nowUtc = Date.now();
+    const locationTime = new Date(nowUtc + weather.timezone_offset * 1000);
+    const hours = String(locationTime.getUTCHours()).padStart(2, "0");
+    const minutes = String(locationTime.getUTCMinutes()).padStart(2, "0");
+    localTimeEl.textContent = `Local: ${hours}:${minutes}`;
+  }
+}
+
+/**
  * Renders the saved/favorite locations as mini cards in the saved-locations section.
  * Each card shows: location name, weather icon, temperature, last updated time,
  * and has a refresh button for on-demand updates.
@@ -1739,7 +1832,12 @@ function renderSavedLocations() {
           favorites[key].weatherData = json;
           favorites[key].lastUpdated = Date.now();
           saveFavorites();
-          renderSavedLocations();
+
+          // Update only this specific card instead of re-rendering all
+          const card = btn.closest(".saved-card");
+          if (card) {
+            updateSavedCard(card, key, favorites[key]);
+          }
         }
       } catch (err) {
         console.error("Failed to refresh favorite:", err);
