@@ -67,25 +67,6 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SITE HEADER
-   ═══════════════════════════════════════════════════════════════════════════
-   The top header section with the app title and tagline.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-/* Flexbox container to align header elements horizontally */
-.site-header-content {
-  display: flex;
-  align-items: center; /* Vertically center items */
-  gap: 1rem; /* Space between logo/icon and text */
-}
-
-/* Stack the title and tagline vertically */
-.site-text {
-  display: flex;
-  flex-direction: column;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
    ACCESSIBILITY STYLES
    ═══════════════════════════════════════════════════════════════════════════
    Styles that improve keyboard navigation and screen reader support.
@@ -116,16 +97,49 @@ select:focus {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   ICONS & STATUS MESSAGES
+   ═══════════════════════════════════════════════════════════════════════════
+   SVG icon sizing and status message styling.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Default icon size used in weather cards */
+.icon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-bg-dark);
+}
+
+/* Status message area (loading, errors, etc.) */
+#status {
+  color: rgba(0, 0, 0, 0.6); /* Semi-transparent for subtle appearance */
+  font-size: 0.95rem;
+  margin: 8px 0;
+}
+
+/* Warning status - more prominent for error messages */
+#status.status-warning {
+  color: var(--color-warning-bright);
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    PAGE LAYOUT
    ═══════════════════════════════════════════════════════════════════════════
    Main structural elements that define the page layout.
    ═══════════════════════════════════════════════════════════════════════════ */
+
 /* Main content container - centers content and limits max width */
 main {
   max-width: 1100px; /* Prevents content from stretching too wide on large screens */
   margin: 0 auto; /* Centers the main content horizontally */
   padding: 20px;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SITE HEADER
+   ═══════════════════════════════════════════════════════════════════════════
+   The top header section with the app title and tagline.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 /* Gradient header bar at the top of the page */
 .site-header {
@@ -139,6 +153,19 @@ main {
   border-radius: 12px;
 }
 
+/* Flexbox container to align header elements horizontally */
+.site-header-content {
+  display: flex;
+  align-items: center; /* Vertically center items */
+  gap: 1rem; /* Space between logo/icon and text */
+}
+
+/* Stack the title and tagline vertically */
+.site-text {
+  display: flex;
+  flex-direction: column;
+}
+
 /* Remove default margins from header text elements */
 .site-title {
   margin: 0 0 6px;
@@ -148,7 +175,12 @@ main {
   margin: 0;
 }
 
-/* White panel that contains the search input and controls */
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONTROLS PANEL (Search Container)
+   ═══════════════════════════════════════════════════════════════════════════
+   White panel that contains the search input and controls.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .controls-panel {
   background: var(--color-bg-white);
   border-radius: 12px;
@@ -189,6 +221,14 @@ main {
   flex: 1;
   min-width: 0; /* Allows shrinking below content width in flexbox */
   position: relative; /* For positioning the dropdown */
+}
+
+/* Small screens: search input takes full width, buttons wrap below */
+@media (max-width: 600px) {
+  #controls .combobox {
+    flex: 1 1 100%; /* Full width on small screens */
+    min-width: 100%;
+  }
 }
 
 /* Make the input inside combobox fill the wrapper */
@@ -273,37 +313,62 @@ main {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   ICONS & STATUS MESSAGES
+   AUTOCOMPLETE SUGGESTIONS DROPDOWN
    ═══════════════════════════════════════════════════════════════════════════
-   SVG icon sizing and status message styling.
+   Dropdown list that appears below the search input showing location matches.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Default icon size used in weather cards */
-.icon {
-  width: 48px;
-  height: 48px;
-  color: var(--color-bg-dark);
+/* Dropdown container - positioned below the search input */
+.suggestions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-top: 0.25rem;
+  z-index: 1000; /* Ensures dropdown appears above other content */
+  background: var(--color-bg-white, #fff);
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  box-shadow: 0 8px 20px rgba(15, 15, 79, 0.08);
+  max-height: 300px;
+  overflow: auto; /* Scrollable if many results */
+  padding: 0.125rem;
+  display: none; /* Hidden by default, shown via JavaScript */
 }
 
-/* Status message area (loading, errors, etc.) */
-#status {
-  color: rgba(0, 0, 0, 0.6); /* Semi-transparent for subtle appearance */
-  font-size: 0.95rem;
-  margin: 8px 0;
+/* Individual suggestion item */
+.suggestions .suggestion-item {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  user-select: none; /* Prevents text selection when clicking */
+  border-radius: 4px;
+  display: block;
+  color: #212529;
 }
 
-/* Warning status - more prominent for error messages */
-#status.status-warning {
-  color: var(--color-warning-bright);
-  font-weight: 600;
+/* Highlighted item (keyboard navigation or hover) */
+.suggestions .suggestion-item.highlighted,
+.suggestions .suggestion-item:hover {
+  background: var(--color-accent-2, #e7f0fa);
+  outline: none;
+}
+
+/* Secondary text in suggestion (country, region info) */
+.suggestions .loc-meta {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-left: 0.5rem;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SAVED LOCATIONS GRID
+   SAVED LOCATIONS SECTION
    ═══════════════════════════════════════════════════════════════════════════
-   Grid layout for displaying favorite/saved weather locations as mini cards.
-   Uses CSS Grid with responsive breakpoints to adjust columns.
+   Container and grid for displaying favorite/saved weather locations.
    ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Wrapper container for saved locations section */
+#saved-locations {
+  margin: 12px 0;
+}
 
 /* Grid container - displays up to 4 cards per row */
 .saved-grid {
@@ -312,24 +377,36 @@ main {
   grid-template-columns: repeat(4, 1fr); /* 4 equal-width columns */
 }
 
-/* Wrapper container for saved locations section */
-#saved-locations {
-  margin: 12px 0;
-}
-
 /* ═══════════════════════════════════════════════════════════════════════════
    SAVED LOCATION CARDS
    ═══════════════════════════════════════════════════════════════════════════
    Individual cards showing saved/favorited locations with weather info.
    Each card displays: location name, weather description, icon, temp,
    wind speed, and last updated time.
+   
+   Structure order:
+   .saved-card (container)
+     └─ .saved-card__header
+          └─ .saved-card__header-top
+               ├─ .saved-card__name
+               └─ .saved-card__remove
+          └─ .saved-card__desc
+     └─ .saved-card__body
+          ├─ .saved-card__icon
+          ├─ .saved-card__info
+          │    ├─ .saved-card__temp
+          │    └─ .saved-card__feels-like
+          └─ .saved-card__wind
+     └─ .saved-card__footer
+          ├─ .saved-card__updated
+          └─ .saved-card__refresh
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* Main card container - flexbox column layout */
 .saved-card {
   background: var(--color-bg-white);
   border-radius: 10px;
-  padding: 0.75rem;
+  padding: 0.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   cursor: pointer; /* Clickable to view full weather */
   transition: transform 0.15s, box-shadow 0.15s; /* Smooth hover animation */
@@ -344,11 +421,19 @@ main {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); /* Deeper shadow */
 }
 
+/* --- SAVED CARD: HEADER SECTION --- */
+
 /* Card header - contains location name and weather description */
 .saved-card__header {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.1rem;
+  background: var(--color-primary-2);
+
+  color: var(--color-text-dark);
+  padding: 0.5rem;
+  margin: -0.5rem -0.5rem 0 -0.5rem; /* Extend to card edges */
+  border-radius: 10px 10px 0 0; /* Match card's top corners */
 }
 
 /* Top row of header - name on left, remove button on right */
@@ -356,7 +441,7 @@ main {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 0.5rem;
+  gap: 0.2rem;
 }
 
 /* Location name styling */
@@ -368,22 +453,12 @@ main {
   word-break: break-word; /* Handle long location names */
 }
 
-/* Weather description (e.g., "Partly cloudy") */
-.saved-card__desc {
-  font-size: 0.75rem;
-  color: rgba(0, 0, 0, 0.6);
-  text-transform: capitalize; /* Capitalizes first letter */
-  white-space: nowrap; /* Keep on single line */
-  overflow: hidden;
-  text-overflow: ellipsis; /* Show "..." if text is too long */
-}
-
 /* Remove/delete button (X icon) */
 .saved-card__remove {
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.1rem;
   border-radius: 50%; /* Circular button */
   display: flex;
   align-items: center;
@@ -404,12 +479,24 @@ main {
   color: var(--color-text-dark);
 }
 
+/* Weather description (e.g., "Partly cloudy") */
+.saved-card__desc {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.6);
+  text-transform: capitalize; /* Capitalizes first letter */
+  white-space: nowrap; /* Keep on single line */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Show "..." if text is too long */
+}
+
+/* --- SAVED CARD: BODY SECTION --- */
+
 /* Card body - main content area with icon, temp, and wind */
 .saved-card__body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0.2rem;
 }
 
 /* Weather icon image */
@@ -439,22 +526,6 @@ main {
   flex: 1; /* Take available space */
 }
 
-/* Wind speed display with icon */
-.saved-card__wind {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.2rem;
-  font-size: 0.8rem;
-  color: var(--color-text-dark);
-}
-
-.saved-card__wind .icon {
-  width: 18px;
-  height: 18px;
-  opacity: 0.7;
-}
-
 /* Main temperature display - large and bold */
 .saved-card__temp {
   font-size: 1.4rem;
@@ -474,13 +545,34 @@ main {
   color: rgba(0, 0, 0, 0.6);
 }
 
-/* Card footer - last updated time and refresh button */
+/* Wind speed display with icon */
+.saved-card__wind {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  color: var(--color-text-dark);
+}
+
+.saved-card__wind .icon {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+}
+
+/* --- SAVED CARD: FOOTER SECTION --- */
+
+/* Card footer - last updated time and refresh button (styled like meta row) */
 .saved-card__footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 0.25rem;
+  padding: 0.35rem 0.5rem;
+  margin: 0 -0.5rem -0.5rem -0.5rem; /* Extend to card edges */
+  border-radius: 0 0 10px 10px; /* Match card's bottom corners */
   border-top: 1px solid var(--color-bg-light); /* Separator line */
+  color: var(--color-text-dark);
 }
 
 /* "X minutes ago" timestamp */
@@ -494,7 +586,7 @@ main {
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 0.35rem;
+  padding: 0.1rem;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -556,56 +648,27 @@ main {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   AUTOCOMPLETE SUGGESTIONS DROPDOWN
-   ═══════════════════════════════════════════════════════════════════════════
-   Dropdown list that appears below the search input showing location matches.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-/* Dropdown container - positioned below the search input */
-.suggestions {
-  position: absolute;
-  left: 0;
-  right: 0;
-  margin-top: 0.25rem;
-  z-index: 1000; /* Ensures dropdown appears above other content */
-  background: var(--color-bg-white, #fff);
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  box-shadow: 0 8px 20px rgba(15, 15, 79, 0.08);
-  max-height: 300px;
-  overflow: auto; /* Scrollable if many results */
-  padding: 0.125rem;
-  display: none; /* Hidden by default, shown via JavaScript */
-}
-
-/* Individual suggestion item */
-.suggestions .suggestion-item {
-  padding: 0.5rem 0.75rem;
-  cursor: pointer;
-  user-select: none; /* Prevents text selection when clicking */
-  border-radius: 4px;
-  display: block;
-  color: #212529;
-}
-
-/* Highlighted item (keyboard navigation or hover) */
-.suggestions .suggestion-item.highlighted,
-.suggestions .suggestion-item:hover {
-  background: var(--color-accent-2, #e7f0fa);
-  outline: none;
-}
-
-/* Secondary text in suggestion (country, region info) */
-.suggestions .loc-meta {
-  font-size: 0.85rem;
-  color: #6b7280;
-  margin-left: 0.5rem;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
    CURRENT WEATHER CARD
    ═══════════════════════════════════════════════════════════════════════════
    Main weather display card showing current conditions for selected location.
+   
+   Structure order:
+   .weather-card (container)
+     └─ .weather-card__header
+          └─ .weather-card__header-left
+               └─ .weather-card__title-row
+                    ├─ .weather-card__title
+                    └─ .weather-card__favorite
+               └─ .weather-card__subtitle
+          └─ .weather-card__refresh
+     └─ .weather-card__meta-row
+     └─ .weather-card__body
+          ├─ .weather-symbol__img
+          └─ .weather-card__tile (multiple)
+               ├─ .weather-card__tile-top-row
+               │    └─ .weather-card__tile-main-info
+               └─ .weather-card__tile-bottom-row
+                    └─ .weather-card__tile-support-info
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* Card container */
@@ -616,6 +679,8 @@ main {
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
+
+/* --- WEATHER CARD: HEADER SECTION --- */
 
 /* Card header with gradient background */
 .weather-card__header {
@@ -630,6 +695,95 @@ main {
   align-items: center;
   justify-content: space-between;
 }
+
+/* Left side of header (contains title elements) */
+.weather-card__header-left {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
+
+/* Container for title and favorite star button */
+.weather-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Location title text */
+.weather-card__title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text-dark);
+}
+
+/* Favorite (star) button - toggles location as favorite */
+.weather-card__favorite {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, color 0.15s;
+}
+
+/* Grow effect on hover */
+.weather-card__favorite:hover {
+  transform: scale(1.15);
+}
+
+/* Star icon styling */
+.weather-card__favorite .icon {
+  width: 22px;
+  height: 22px;
+  color: var(--color-warning);
+}
+
+/* Filled star when location is favorited */
+.weather-card__favorite.is-favorite .icon {
+  color: var(--color-warning-bright);
+}
+
+/* Weather description subtitle */
+.weather-card__subtitle {
+  font-size: 1.2rem;
+  color: var(--color-text-dark);
+  font-weight: 600;
+}
+
+/* Refresh button in header */
+.weather-card__refresh {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+}
+
+/* Disabled state for refresh button */
+.weather-card__refresh[disabled] {
+  opacity: 0.6;
+  pointer-events: none; /* Prevents clicking */
+}
+
+.weather-card__refresh[disabled] .icon {
+  color: var(--color-bg-light);
+}
+
+/* --- WEATHER CARD: META ROW --- */
+
+/* Meta information row (shows date/time info) */
+.weather-card__meta-row {
+  font-size: 1.2rem;
+  background: var(--color-primary-2);
+  color: var(--color-text-dark);
+  padding-left: 10px;
+}
+
+/* --- WEATHER CARD: BODY SECTION --- */
 
 /* Card body - displays weather data in a flexible layout */
 .weather-card__body {
@@ -706,90 +860,31 @@ main {
   height: 18px;
 }
 
-/* Location title text */
-.weather-card__title {
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin: 0;
-  color: var(--color-text-dark);
-}
+/* ═══════════════════════════════════════════════════════════════════════════
+   TEMPERATURE COLOR CLASSES
+   ═══════════════════════════════════════════════════════════════════════════
+   Applied dynamically based on temperature value to provide visual feedback.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Container for title and favorite star button */
-.weather-card__title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
+.temp-freezing {
+  color: var(--color-temp-freezing);
+} /* Below -10°C: dark blue */
 
-/* Favorite (star) button - toggles location as favorite */
-.weather-card__favorite {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.15s, color 0.15s;
-}
+.temp-cold {
+  color: var(--color-temp-cold);
+} /* -10 to -1°C: medium blue */
 
-/* Grow effect on hover */
-.weather-card__favorite:hover {
-  transform: scale(1.15);
-}
+.temp-neutral {
+  color: var(--color-temp-neutral);
+} /* 0°C: gray */
 
-/* Star icon styling */
-.weather-card__favorite .icon {
-  width: 22px;
-  height: 22px;
-  color: var(--color-warning);
-}
+.temp-warm {
+  color: var(--color-temp-warm);
+} /* +1 to +15°C: coral */
 
-/* Filled star when location is favorited */
-.weather-card__favorite.is-favorite .icon {
-  color: var(--color-warning-bright);
-}
-
-/* Weather description subtitle */
-.weather-card__subtitle {
-  font-size: 1.2rem;
-  padding: 5px 10x;
-  color: var(--color-text-dark);
-  font-weight: 600;
-}
-
-/* Left side of header (contains title elements) */
-.weather-card__header-left {
-  display: flex;
-  align-items: center;
-}
-
-/* Refresh button in header */
-.weather-card__refresh {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-}
-
-/* Meta information row (shows date/time info) */
-.weather-card__meta-row {
-  font-size: 1.2rem;
-  background: var(--color-primary-2);
-  color: var(--color-text-dark);
-  padding-left: 10px;
-}
-
-/* Disabled state for refresh button */
-.weather-card__refresh[disabled] {
-  opacity: 0.6;
-  pointer-events: none; /* Prevents clicking */
-}
-
-.weather-card__refresh[disabled] .icon {
-  color: var(--color-bg-light);
-}
+.temp-hot {
+  color: var(--color-temp-hot);
+} /* Above +15°C: red */
 
 /* ═══════════════════════════════════════════════════════════════════════════
    DAILY FORECAST LIST
@@ -877,32 +972,6 @@ main {
   align-items: center;
   gap: 0.25rem;
 }
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   TEMPERATURE COLOR CLASSES
-   ═══════════════════════════════════════════════════════════════════════════
-   Applied dynamically based on temperature value to provide visual feedback.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-.temp-freezing {
-  color: var(--color-temp-freezing);
-} /* Below -10°C: dark blue */
-
-.temp-cold {
-  color: var(--color-temp-cold);
-} /* -10 to -1°C: medium blue */
-
-.temp-neutral {
-  color: var(--color-temp-neutral);
-} /* 0°C: gray */
-
-.temp-warm {
-  color: var(--color-temp-warm);
-} /* +1 to +15°C: coral */
-
-.temp-hot {
-  color: var(--color-temp-hot);
-} /* Above +15°C: red */
 
 /* ═══════════════════════════════════════════════════════════════════════════
    DAILY FORECAST - MOBILE RESPONSIVE LAYOUT
@@ -1041,6 +1110,8 @@ body:has(dialog[open]) {
   backdrop-filter: blur(2px); /* Subtle blur effect on background */
 }
 
+/* --- MODAL: HEADER SECTION --- */
+
 /* Modal header with gradient background */
 .modal-dialog__header {
   background: linear-gradient(
@@ -1091,6 +1162,8 @@ body:has(dialog[open]) {
   height: 24px;
   color: var(--color-text-dark);
 }
+
+/* --- MODAL: BODY SECTION --- */
 
 /* Modal body - scrollable content area */
 .hourly-weather-dialog {
