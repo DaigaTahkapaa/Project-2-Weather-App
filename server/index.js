@@ -3,12 +3,21 @@ import express from "express";
 import fetch from "node-fetch"; // if Node < 18; otherwise use global fetch
 import dotenv from "dotenv";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 // Enable CORS for cross-origin requests from your frontend dev server
 app.use(cors());
+
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, "../frontend")));
+
 const PORT = process.env.PORT || 3000;
 const KEY = process.env.OPENWEATHER_API_KEY;
 if (!KEY) {
