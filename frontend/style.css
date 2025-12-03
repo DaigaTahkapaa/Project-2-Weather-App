@@ -779,7 +779,7 @@ main {
 
 /* Location title text */
 .weather-card__title {
-  font-size: 1.6rem;
+  font-size: 1.2rem;
   font-weight: 700;
   margin: 0;
   color: var(--color-text-dark);
@@ -817,7 +817,7 @@ main {
 
 /* Weather description subtitle */
 .weather-card__subtitle {
-  font-size: 1.2rem;
+  font-size: 1rem;
   color: var(--color-text-dark);
   font-weight: 600;
 }
@@ -844,7 +844,7 @@ main {
 
 /* Meta information row (shows date/time info) */
 .weather-card__meta-row {
-  font-size: 1.2rem;
+  font-size: 0.9rem;
   background: var(--color-primary-2);
   color: var(--color-text-dark);
   padding-left: 10px;
@@ -892,7 +892,7 @@ main {
 
 /* Main data value (large text) */
 .weather-card__tile-main-info {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
   line-height: 1;
 }

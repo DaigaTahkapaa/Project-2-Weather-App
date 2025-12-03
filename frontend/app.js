@@ -324,12 +324,13 @@ function toLocalDate(dtSeconds, timezoneOffsetSeconds = 0) {
 }
 
 /**
- * Formats a timestamp as time only (e.g., "14:30:00") in the location's timezone.
+ * Formats a timestamp as date and time in the location's timezone.
  * Used to show "Local time" in the weather card.
+ * Example output: "Dec 3, 19:52:00"
  * @param {number} dtSeconds - Unix timestamp in seconds
  * @param {number} timezoneOffsetSeconds - Location's timezone offset in seconds
  * @param {string} locale - Locale for formatting (default: "en-US")
- * @returns {string} Formatted time string like "14:30:00"
+ * @returns {string} Formatted date and time string like "Dec 3, 19:52:00"
  */
 function formatTimeOnly(
   dtSeconds,
@@ -337,29 +338,34 @@ function formatTimeOnly(
   locale = "en-US"
 ) {
   const d = toLocalDate(dtSeconds, timezoneOffsetSeconds);
-  return new Intl.DateTimeFormat(locale, {
+  const datePart = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(d);
+  const timePart = new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
     hour12: false,
     timeZone: "UTC",
-  }).format(new Date(d.toISOString()));
+  }).format(d);
+  return `${datePart}, ${timePart}`;
 }
 
 /**
  * Formats a timestamp in the USER's local timezone (not the weather location's).
  * Used for "Last updated" to show when data was fetched in the user's time.
- * Example output: "December 2, 2025 14:30:00"
+ * Example output: "Dec 3, 21:52:00"
  * @param {number} ms - Timestamp in milliseconds
  * @param {string} locale - User's locale for formatting
- * @returns {string} Full date and time string
+ * @returns {string} Compact date and time string
  */
 function formatUserLocalFullFromMs(ms, locale = navigator.language || "en-US") {
   const d = new Date(Number(ms));
-  const datePart = new Intl.DateTimeFormat(locale, {
-    month: "long",
+  const datePart = new Intl.DateTimeFormat("en-US", {
+    month: "short",
     day: "numeric",
-    year: "numeric",
   }).format(d);
   const timePart = new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
@@ -367,7 +373,7 @@ function formatUserLocalFullFromMs(ms, locale = navigator.language || "en-US") {
     second: "2-digit",
     hour12: false,
   }).format(d);
-  return `${datePart} ${timePart}`;
+  return `${datePart}, ${timePart}`;
 }
 
 /**
