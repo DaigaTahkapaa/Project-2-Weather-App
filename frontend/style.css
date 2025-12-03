@@ -641,7 +641,7 @@ main {
   margin: 0 0.4rem;
 }
 
-/* User's local time display */
+/* Location's local time display */
 .saved-card__local-time {
   font-size: 0.75rem;
   color: rgba(0, 0, 0, 0.5);

@@ -71,6 +71,13 @@ const MAX_FAVORITES = 4;
 // Prevents overwhelming the API with simultaneous requests
 const FAV_REFRESH_STAGGER_MS = 300;
 
+// API base URL - automatically switches between localhost and production
+// In development (localhost), uses local server; in production, uses Render URL
+const API_BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:3000"
+    : "https://project-2-weather-app-jk6e.onrender.com";
+
 // =====================================================================
 // === 3. STATE VARIABLES ===
 // === currentSuggestions, highlightedIndex, geocodeController, ===
@@ -537,12 +544,8 @@ async function GetLocations(query) {
       statusMessage.classList.remove("status-warning");
     }
 
-    const url = `http://localhost:3000/api/geocode?q=${encodeURIComponent(
-      trimmed
-    )}`;
-    console.log("GetLocations ->", url);
+    const url = `${API_BASE_URL}/api/geocode?q=${encodeURIComponent(trimmed)}`;
     const resp = await fetch(url, { signal });
-    console.log("GetLocations <- status", resp.status, "for", trimmed);
 
     if (!resp.ok) {
       console.error("Geocode proxy returned", resp.status);
@@ -582,7 +585,6 @@ async function GetLocations(query) {
     return deduped;
   } catch (err) {
     if (err.name === "AbortError") {
-      console.log("GetLocations aborted for", trimmed);
       return null;
     }
     console.error("GetLocations network/error:", err);
@@ -624,12 +626,11 @@ async function fetchWeather(lat, lon, location = null) {
   }
   const units = getSelectedUnit() || "metric";
   const exclude = "minutely";
-  const url = `http://localhost:3000/api/weather?lat=${encodeURIComponent(
+  const url = `${API_BASE_URL}/api/weather?lat=${encodeURIComponent(
     lat
   )}&lon=${encodeURIComponent(lon)}&units=${encodeURIComponent(
     units
   )}&exclude=${encodeURIComponent(exclude)}`;
-  console.log("fetchWeather ->", url);
 
   try {
     const resp = await fetch(url);
@@ -638,7 +639,6 @@ async function fetchWeather(lat, lon, location = null) {
       return null;
     }
     const json = await resp.json();
-    console.log("Weather response:", json);
     lastFetchedTs = Date.now();
     lastWeatherPayload = json; // Store for hourly modal access
     const loc = location || lastSelectedLocation || { lat, lon };
@@ -660,7 +660,7 @@ async function fetchWeather(lat, lon, location = null) {
  */
 async function reverseGeocode(lat, lon) {
   try {
-    const url = `http://localhost:3000/api/reverse-geocode?lat=${encodeURIComponent(
+    const url = `${API_BASE_URL}/api/reverse-geocode?lat=${encodeURIComponent(
       lat
     )}&lon=${encodeURIComponent(lon)}`;
     const resp = await fetch(url);
@@ -722,7 +722,6 @@ async function getUserLocation() {
     });
 
     const { latitude, longitude } = position.coords;
-    console.log("Got user location:", latitude, longitude);
 
     // Reverse geocode to get location name
     const location = await reverseGeocode(latitude, longitude);
@@ -1728,7 +1727,7 @@ function renderSavedLocations() {
 
       try {
         const unit = getSelectedUnit() || "metric";
-        const url = `http://localhost:3000/api/weather?lat=${encodeURIComponent(
+        const url = `${API_BASE_URL}/api/weather?lat=${encodeURIComponent(
           fav.lat
         )}&lon=${encodeURIComponent(fav.lon)}&units=${encodeURIComponent(
           unit
@@ -1766,7 +1765,7 @@ async function refreshAllFavorites() {
     const fav = favorites[key];
 
     try {
-      const url = `http://localhost:3000/api/weather?lat=${encodeURIComponent(
+      const url = `${API_BASE_URL}/api/weather?lat=${encodeURIComponent(
         fav.lat
       )}&lon=${encodeURIComponent(fav.lon)}&units=${encodeURIComponent(
         unit
@@ -1858,7 +1857,6 @@ function selectSuggestion(index) {
     sel.state ? ", " + sel.state : ""
   }`;
   clearSuggestions();
-  console.log("Selected location:", sel);
   lastSelectedLocation = sel;
   lastFetchedTs = Date.now();
   fetchWeather(sel.lat, sel.lon, sel);
