@@ -207,10 +207,11 @@ main {
 /* The search text input field */
 #controls #q {
   flex: 1; /* Takes up available space */
-  min-width: 220px; /* Prevents input from becoming too narrow */
+  min-width: 180px; /* Prevents input from becoming too narrow */
   padding: 10px 12px;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 8px;
+  border-radius: 0 8px 8px 0; /* Rounded right corners only (left joins geolocation btn) */
+  box-sizing: border-box;
 }
 
 /* 
@@ -221,6 +222,57 @@ main {
   flex: 1;
   min-width: 0; /* Allows shrinking below content width in flexbox */
   position: relative; /* For positioning the dropdown */
+  display: flex; /* Flexbox for geolocation button + input */
+  align-items: stretch;
+  gap: 0; /* No gap - input border handles spacing */
+}
+
+/* Geolocation button - map pin icon to get user's current location */
+.geolocate-btn {
+  padding: 10px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-right: none; /* Merge with input border */
+  border-radius: 8px 0 0 8px; /* Rounded left corners only */
+  background: var(--color-bg-white);
+  box-sizing: border-box;
+  color: var(--color-bg-dark);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.geolocate-btn:hover {
+  background: var(--color-primary-2);
+  color: var(--color-text-dark);
+}
+
+.geolocate-btn:focus {
+  outline: 3px solid var(--color-primary-1);
+  outline-offset: 2px;
+  z-index: 1; /* Ensure outline shows above input */
+}
+
+/* Geolocation button icon */
+.geolocate-btn .icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Loading state - spinning animation when fetching location */
+.geolocate-btn.loading .icon {
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 /* Small screens: search input takes full width, buttons wrap below */
@@ -235,6 +287,7 @@ main {
 #controls .combobox input {
   width: 100%;
   box-sizing: border-box;
+  border-radius: 0 8px 8px 0; /* Rounded right corners only (left is geolocation btn) */
 }
 
 /* Search button styling */
@@ -577,6 +630,19 @@ main {
 
 /* "X minutes ago" timestamp */
 .saved-card__updated {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* Separator between updated time and local time */
+.saved-card__separator {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.3);
+  margin: 0 0.4rem;
+}
+
+/* User's local time display */
+.saved-card__local-time {
   font-size: 0.75rem;
   color: rgba(0, 0, 0, 0.5);
 }

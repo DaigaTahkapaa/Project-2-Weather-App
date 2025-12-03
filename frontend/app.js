@@ -17,6 +17,9 @@ const suggestionsEl = document.getElementById("suggestions");
 // Container holding the °C / °F toggle buttons
 const unitToggle = document.querySelector(".unit-toggle");
 
+// Geolocation button to get user's current location
+const geolocateBtn = document.getElementById("geolocateBtn");
+
 // =====================================================================
 // === 2. CONSTANTS ===
 // === regionNames, PRECIP_WEATHER_IDS, REFRESH_COOLDOWN_MS ===
@@ -644,6 +647,148 @@ async function fetchWeather(lat, lon, location = null) {
   } catch (err) {
     console.error("fetchWeather error", err);
     return null;
+  }
+}
+
+/**
+ * Reverse geocodes coordinates to get location name.
+ * Uses the browser's geolocation API coordinates to get a city name.
+ *
+ * @param {number} lat - Latitude
+ * @param {number} lon - Longitude
+ * @returns {Object|null} Location object with name, country, state, lat, lon
+ */
+async function reverseGeocode(lat, lon) {
+  try {
+    const url = `http://localhost:3000/api/reverse-geocode?lat=${encodeURIComponent(
+      lat
+    )}&lon=${encodeURIComponent(lon)}`;
+    const resp = await fetch(url);
+    if (!resp.ok) {
+      console.error("Reverse geocode returned", resp.status);
+      return null;
+    }
+    const data = await resp.json();
+    // API returns an array, get the first (closest) result
+    const location = Array.isArray(data) ? data[0] : data;
+    if (location && location.name) {
+      return {
+        name: location.name,
+        country: location.country || "",
+        state: location.state || "",
+        lat: lat,
+        lon: lon,
+      };
+    }
+    return null;
+  } catch (err) {
+    console.error("reverseGeocode error", err);
+    return null;
+  }
+}
+
+/**
+ * Gets user's current location using browser's geolocation API,
+ * then reverse geocodes to get the location name and fetches weather.
+ */
+async function getUserLocation() {
+  if (!navigator.geolocation) {
+    if (statusMessage) {
+      statusMessage.textContent =
+        "Geolocation is not supported by your browser";
+      statusMessage.classList.add("status-warning");
+    }
+    return;
+  }
+
+  // Show loading state
+  if (geolocateBtn) {
+    geolocateBtn.classList.add("locating");
+    geolocateBtn.disabled = true;
+  }
+  if (statusMessage) {
+    statusMessage.textContent = "Getting your location...";
+    statusMessage.classList.remove("status-warning");
+  }
+
+  try {
+    // Get user's position
+    const position = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 300000, // Cache for 5 minutes
+      });
+    });
+
+    const { latitude, longitude } = position.coords;
+    console.log("Got user location:", latitude, longitude);
+
+    // Reverse geocode to get location name
+    const location = await reverseGeocode(latitude, longitude);
+
+    if (location) {
+      // Update search input with location name
+      if (q) {
+        const displayName = location.state
+          ? `${location.name}, ${location.state}, ${location.country}`
+          : `${location.name}, ${location.country}`;
+        q.value = displayName;
+      }
+
+      // Store as selected location and fetch weather
+      lastSelectedLocation = location;
+      clearSuggestions();
+      if (statusMessage) {
+        statusMessage.textContent = "";
+      }
+      await fetchWeather(latitude, longitude, location);
+    } else {
+      // Fallback: use coordinates directly if reverse geocode fails
+      if (q) {
+        q.value = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+      }
+      lastSelectedLocation = {
+        lat: latitude,
+        lon: longitude,
+        name: "Your Location",
+      };
+      if (statusMessage) {
+        statusMessage.textContent = "";
+      }
+      await fetchWeather(latitude, longitude, {
+        name: "Your Location",
+        lat: latitude,
+        lon: longitude,
+      });
+    }
+  } catch (err) {
+    console.error("Geolocation error:", err);
+    let errorMsg = "Unable to get your location";
+
+    switch (err.code) {
+      case err.PERMISSION_DENIED:
+        errorMsg =
+          "Location access was denied. Please enable location permissions.";
+        break;
+      case err.POSITION_UNAVAILABLE:
+        errorMsg = "Location information is unavailable.";
+        break;
+      case err.TIMEOUT:
+        errorMsg = "Location request timed out. Please try again.";
+        break;
+    }
+
+    if (statusMessage) {
+      statusMessage.textContent = errorMsg;
+      statusMessage.classList.add("status-warning");
+    }
+  } finally {
+    // Remove loading state
+    if (geolocateBtn) {
+      geolocateBtn.classList.remove("locating");
+      geolocateBtn.disabled = false;
+    }
   }
 }
 
@@ -1432,6 +1577,18 @@ function renderSavedLocations() {
       // Last updated - shows actual time (e.g., "14:30") instead of relative time
       const lastUpdatedText = formatLastUpdatedTime(fav.lastUpdated);
 
+      // Location's current local time (using timezone_offset from weather data)
+      let locationLocalTime = "--:--";
+      if (weather && typeof weather.timezone_offset === "number") {
+        // Calculate current time at the location
+        const nowUtc = Date.now(); // Current UTC time in ms
+        const locationTime = new Date(nowUtc + weather.timezone_offset * 1000);
+        // Format using UTC methods since we already added the offset
+        const hours = String(locationTime.getUTCHours()).padStart(2, "0");
+        const minutes = String(locationTime.getUTCMinutes()).padStart(2, "0");
+        locationLocalTime = `${hours}:${minutes}`;
+      }
+
       return `
         <div class="saved-card" data-fav-key="${escapeHtml(key)}">
           <div class="saved-card__header">
@@ -1481,6 +1638,10 @@ function renderSavedLocations() {
           <div class="saved-card__footer">
             <span class="saved-card__updated">${escapeHtml(
               lastUpdatedText
+            )}</span>
+            <span class="saved-card__separator">|</span>
+            <span class="saved-card__local-time">Local: ${escapeHtml(
+              locationLocalTime
             )}</span>
             <button class="saved-card__refresh" aria-label="Refresh weather for ${escapeHtml(
               fav.name
@@ -1831,6 +1992,14 @@ if (unitToggle) {
 
     // Re-fetch all favorites with new units
     refreshAllFavorites();
+  });
+}
+
+// --- Geolocation Button Handler ---
+// Gets user's current location when they click the geolocation button.
+if (geolocateBtn) {
+  geolocateBtn.addEventListener("click", () => {
+    getUserLocation();
   });
 }
 

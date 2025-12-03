@@ -143,10 +143,29 @@
           <label for="q" class="sr-only">Search by location</label>
 
           <!-- Input wrapper so suggestions can be absolutely positioned underneath -->
-          <div
-            class="combobox"
-            style="position: relative; display: inline-block; width: 100%"
-          >
+          <div class="combobox">
+            <!-- Geolocation button - gets user's current location -->
+            <button
+              id="geolocateBtn"
+              type="button"
+              class="geolocate-btn"
+              aria-label="Use my current location"
+              title="Use my current location"
+            >
+              <!-- Map pin icon (SVG) -->
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+            </button>
             <input
               id="q"
               type="search"

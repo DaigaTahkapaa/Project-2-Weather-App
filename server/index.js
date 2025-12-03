@@ -89,6 +89,47 @@ app.get("/api/weather", async (req, res) => {
   }
 });
 
+// Proxy to OpenWeather Reverse Geocoding (converts lat/lon to location name)
+app.get("/api/reverse-geocode", async (req, res) => {
+  const lat = Number(req.query.lat);
+  const lon = Number(req.query.lon);
+  const limit = 1; // We only need the closest match
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    return res.status(400).json({ error: "Missing or invalid lat/lon" });
+  }
+
+  const upstream = new URL("https://api.openweathermap.org/geo/1.0/reverse");
+  upstream.search = new URLSearchParams({
+    lat: String(lat),
+    lon: String(lon),
+    limit: String(limit),
+    appid: KEY,
+  }).toString();
+
+  try {
+    const r = await fetch(upstream.toString());
+    if (!r.ok)
+      return res
+        .status(502)
+        .json({ error: "Upstream error", status: r.status });
+    const json = await r.json();
+    // Return only the needed fields (name, lat, lon, country, state)
+    res.json(
+      json.map((item) => ({
+        name: item.name,
+        lat: item.lat,
+        lon: item.lon,
+        country: item.country,
+        state: item.state || null,
+      }))
+    );
+  } catch (err) {
+    console.error("Reverse geocode proxy error", err);
+    res.status(500).json({ error: "Proxy failed" });
+  }
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Proxy listening on http://localhost:${PORT}`);
