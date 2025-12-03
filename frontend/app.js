@@ -58,6 +58,16 @@ const PRECIP_WEATHER_IDS = [
 // 10000ms = 10 seconds. Prevents excessive API calls.
 const REFRESH_COOLDOWN_MS = 10000;
 
+// localStorage key for saving favorite locations
+const FAV_KEY = "weather_favorites_v1";
+
+// Maximum number of favorite locations allowed
+const MAX_FAVORITES = 4;
+
+// Delay between API calls when refreshing favorites on page load (ms)
+// Prevents overwhelming the API with simultaneous requests
+const FAV_REFRESH_STAGGER_MS = 300;
+
 // =====================================================================
 // === 3. STATE VARIABLES ===
 // === currentSuggestions, highlightedIndex, geocodeController, ===
@@ -97,9 +107,16 @@ let lastSelectedLocation = null;
 // Stores the last fetched weather payload for hourly data access
 let lastWeatherPayload = null;
 
+// --- Favorites State ---
+// Object storing favorite locations, loaded from localStorage on startup
+// Structure: { "locationKey": { name, country, state, lat, lon, lastUpdated, weatherData } }
+let favorites = {};
+
 // =====================================================================
 // === 4. UTILITY FUNCTIONS ===
-// === debounce, escapeHtml, dedupeLocations ===
+// === debounce, escapeHtml, dedupeLocations, createLocationKey, ===
+// === loadFavorites, saveFavorites, isFavorite, addFavorite, ===
+// === removeFavorite, formatLastUpdatedTime ===
 // =====================================================================
 // Small helper functions that perform common tasks.
 // These are "pure" functions - they take input and return output
@@ -162,6 +179,111 @@ function dedupeLocations(items) {
     out.push(it);
   }
   return out;
+}
+
+/**
+ * Creates a unique key for a location based on name, country, and state.
+ * Used to identify favorites in localStorage.
+ * @param {Object} location - Location object with name, country, state
+ * @returns {string} Unique key like "helsinki|fi|uusimaa"
+ */
+function createLocationKey(location) {
+  const name = String(location.name || "")
+    .trim()
+    .toLowerCase();
+  const country = String(location.country || "")
+    .trim()
+    .toLowerCase();
+  const state = String(location.state || "")
+    .trim()
+    .toLowerCase();
+  return `${name}|${country}|${state}`;
+}
+
+/**
+ * Loads favorites from localStorage.
+ * Returns empty object if no favorites exist or if data is corrupted.
+ * @returns {Object} Favorites object keyed by location key
+ */
+function loadFavorites() {
+  try {
+    return JSON.parse(localStorage.getItem(FAV_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Saves favorites to localStorage.
+ * Converts the favorites object to JSON string for storage.
+ */
+function saveFavorites() {
+  localStorage.setItem(FAV_KEY, JSON.stringify(favorites));
+}
+
+/**
+ * Checks if a location is in favorites.
+ * @param {Object} location - Location object to check
+ * @returns {boolean} True if location is a favorite
+ */
+function isFavorite(location) {
+  if (!location) return false;
+  const key = createLocationKey(location);
+  return key in favorites;
+}
+
+/**
+ * Adds a location to favorites with its weather data.
+ * Enforces MAX_FAVORITES limit.
+ * @param {Object} location - Location object (name, country, state, lat, lon)
+ * @param {Object} weatherData - Weather data from API (optional)
+ * @returns {boolean} True if added successfully, false if at limit
+ */
+function addFavorite(location, weatherData = null) {
+  if (Object.keys(favorites).length >= MAX_FAVORITES) {
+    return false;
+  }
+  const key = createLocationKey(location);
+  favorites[key] = {
+    name: location.name,
+    country: location.country || "",
+    state: location.state || "",
+    lat: location.lat,
+    lon: location.lon,
+    lastUpdated: Date.now(),
+    weatherData: weatherData,
+  };
+  saveFavorites();
+  return true;
+}
+
+/**
+ * Removes a location from favorites.
+ * @param {Object} location - Location object to remove
+ */
+function removeFavorite(location) {
+  const key = createLocationKey(location);
+  delete favorites[key];
+  saveFavorites();
+}
+
+/**
+ * Formats a timestamp as a short time string (e.g., "14:30").
+ * Used for the "Last updated" display on favorite cards.
+ * Shows actual time instead of relative time since relative time
+ * doesn't auto-update and becomes misleading.
+ * @param {number} timestamp - Timestamp in milliseconds
+ * @returns {string} Formatted time like "14:30"
+ */
+function formatLastUpdatedTime(timestamp) {
+  if (!timestamp) return "Never";
+  const d = new Date(timestamp);
+  const time = new Intl.DateTimeFormat(navigator.language || "en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+  return `Updated: ${time}`;
 }
 
 // =====================================================================
@@ -527,7 +649,8 @@ async function fetchWeather(lat, lon, location = null) {
 
 // =====================================================================
 // === 7. RENDERING FUNCTIONS ===
-// === renderSuggestions, renderCurrentWeather, renderHourlyModal ===
+// === renderSuggestions, renderCurrentWeather, renderHourlyModal, ===
+// === renderSavedLocations, refreshAllFavorites ===
 // =====================================================================
 // Functions that create and insert HTML into the page.
 // They take data and turn it into visible UI elements.
@@ -794,15 +917,36 @@ function renderCurrentWeather(payload, location = {}) {
     })
     .join("\n");
 
+  // Check if current location is a favorite
+  const isCurrentFavorite = isFavorite(location);
+  const starIcon = isCurrentFavorite ? "icon-star-filled" : "icon-star";
+  const starLabel = isCurrentFavorite
+    ? "Remove from favorites"
+    : "Add to favorites";
+  const favoritesAtLimit =
+    !isCurrentFavorite && Object.keys(favorites).length >= MAX_FAVORITES;
+
   el.innerHTML = `
     <div class="weather-card__header">
       <div class="weather-card__header-left">
-        <div>
+        <div class="weather-card__title-row">
           <h3 class="weather-card__title">${escapeHtml(nameText)}</h3>
-          <div class="weather-card__subtitle">${escapeHtml(
-            countryText
-          )}${escapeHtml(stateText)}</div>
+          <button class="weather-card__favorite ${
+            isCurrentFavorite ? "is-favorite" : ""
+          }" 
+                  aria-label="${starLabel}" 
+                  id="weather-favorite-btn"
+                  ${
+                    favoritesAtLimit
+                      ? 'title="Maximum 4 favorites reached"'
+                      : ""
+                  }>
+            <svg class="icon" width="20" height="20"><use href="assets/sprite.svg#${starIcon}"></use></svg>
+          </button>
         </div>
+        <div class="weather-card__subtitle">${escapeHtml(
+          countryText
+        )}${escapeHtml(stateText)}</div>
       </div>
       <div>
         <button class="weather-card__refresh" aria-label="Refresh weather" id="weather-refresh-btn" ${
@@ -980,6 +1124,37 @@ function renderCurrentWeather(payload, location = {}) {
       }
     });
   });
+
+  // Wire favorite button to toggle favorite status
+  const favoriteBtn = document.getElementById("weather-favorite-btn");
+  if (favoriteBtn && location && location.name) {
+    favoriteBtn.addEventListener("click", () => {
+      const isNowFavorite = isFavorite(location);
+      if (isNowFavorite) {
+        // Remove from favorites
+        removeFavorite(location);
+        renderSavedLocations();
+        // Update button appearance
+        favoriteBtn.classList.remove("is-favorite");
+        favoriteBtn.setAttribute("aria-label", "Add to favorites");
+        favoriteBtn.innerHTML = `<svg class="icon" width="20" height="20"><use href="assets/sprite.svg#icon-star"></use></svg>`;
+      } else {
+        // Try to add to favorites
+        if (Object.keys(favorites).length >= MAX_FAVORITES) {
+          alert(
+            `Maximum ${MAX_FAVORITES} favorites reached. Remove one first.`
+          );
+          return;
+        }
+        addFavorite(location, payload);
+        renderSavedLocations();
+        // Update button appearance
+        favoriteBtn.classList.add("is-favorite");
+        favoriteBtn.setAttribute("aria-label", "Remove from favorites");
+        favoriteBtn.innerHTML = `<svg class="icon" width="20" height="20"><use href="assets/sprite.svg#icon-star-filled"></use></svg>`;
+      }
+    });
+  }
 }
 
 /**
@@ -1190,6 +1365,275 @@ function renderHourlyModal(dayIndex) {
   modal.showModal();
 }
 
+/**
+ * Renders the saved/favorite locations as mini cards in the saved-locations section.
+ * Each card shows: location name, weather icon, temperature, last updated time,
+ * and has a refresh button for on-demand updates.
+ */
+function renderSavedLocations() {
+  const container = document.querySelector("#saved-locations .saved-grid");
+  if (!container) return;
+
+  const favKeys = Object.keys(favorites);
+
+  // If no favorites, hide the section
+  if (favKeys.length === 0) {
+    container.innerHTML = "";
+    return;
+  }
+
+  const unit = getSelectedUnit() || "metric";
+  const tempUnit = unit === "metric" ? "°C" : "°F";
+  const tempUnitLabel =
+    tempUnit === "°C" ? "degrees Celsius" : "degrees Fahrenheit";
+
+  const cardsHtml = favKeys
+    .map((key) => {
+      const fav = favorites[key];
+      const weather = fav.weatherData;
+
+      // Location display
+      const countryText = fav.country
+        ? regionNames.of(fav.country) || fav.country
+        : "";
+      const displayName = `${fav.name}${countryText ? ", " + countryText : ""}`;
+
+      // Weather data (if available)
+      let iconUrl = "";
+      let temp = "--";
+      let feelsLike = "--";
+      let tempClass = "";
+      let feelsLikeClass = "";
+      let weatherDesc = "";
+      let windSpeed = "--";
+
+      if (weather && weather.current) {
+        const current = weather.current;
+        const iconCode =
+          current.weather && current.weather[0] && current.weather[0].icon;
+        iconUrl = iconCode
+          ? `https://openweathermap.org/img/wn/${iconCode}@2x.png`
+          : "";
+        temp = Math.round(current.temp);
+        feelsLike = Math.round(current.feels_like);
+        tempClass = tempColorClass(temp, unit === "metric");
+        feelsLikeClass = tempColorClass(feelsLike, unit === "metric");
+        weatherDesc =
+          (current.weather &&
+            current.weather[0] &&
+            current.weather[0].description) ||
+          "";
+        windSpeed = Math.round(current.wind_speed || 0);
+      }
+
+      // Wind unit based on selected unit
+      const windUnit = unit === "metric" ? "m/s" : "mph";
+
+      // Last updated - shows actual time (e.g., "14:30") instead of relative time
+      const lastUpdatedText = formatLastUpdatedTime(fav.lastUpdated);
+
+      return `
+        <div class="saved-card" data-fav-key="${escapeHtml(key)}">
+          <div class="saved-card__header">
+            <div class="saved-card__header-top">
+              <span class="saved-card__name">${escapeHtml(displayName)}</span>
+              <button class="saved-card__remove" aria-label="Remove ${escapeHtml(
+                fav.name
+              )} from favorites" data-fav-key="${escapeHtml(key)}">
+                <svg class="icon" width="16" height="16"><use href="assets/sprite.svg#icon-cross"></use></svg>
+              </button>
+            </div>
+            <div class="saved-card__desc">${escapeHtml(
+              weatherDesc || "—"
+            )}</div>
+          </div>
+          <div class="saved-card__body">
+            <div class="saved-card__icon">
+              ${
+                iconUrl
+                  ? `<img src="${iconUrl}" alt="${escapeHtml(
+                      weatherDesc
+                    )}" width="50" height="50">`
+                  : '<div class="saved-card__icon-placeholder">--</div>'
+              }
+            </div>
+            <div class="saved-card__info">
+              <div class="saved-card__temp ${tempClass}">
+                ${escapeHtml(
+                  String(temp)
+                )}<span class="saved-card__temp-unit" aria-label="${escapeHtml(
+        tempUnitLabel
+      )}">${escapeHtml(tempUnit)}</span>
+              </div>
+              <div class="saved-card__feels-like ${feelsLikeClass}">
+                Feels like ${escapeHtml(String(feelsLike))}${escapeHtml(
+        tempUnit
+      )}
+              </div>
+            </div>
+            <div class="saved-card__wind">
+              <svg class="icon" width="16" height="16"><use href="assets/sprite.svg#icon-wind"></use></svg>
+              <span>${escapeHtml(String(windSpeed))} ${escapeHtml(
+        windUnit
+      )}</span>
+            </div>
+          </div>
+          <div class="saved-card__footer">
+            <span class="saved-card__updated">${escapeHtml(
+              lastUpdatedText
+            )}</span>
+            <button class="saved-card__refresh" aria-label="Refresh weather for ${escapeHtml(
+              fav.name
+            )}" data-fav-key="${escapeHtml(key)}">
+              <svg class="icon" width="16" height="16"><use href="assets/sprite.svg#icon-refresh"></use></svg>
+            </button>
+          </div>
+        </div>
+      `;
+    })
+    .join("\n");
+
+  container.innerHTML = cardsHtml;
+
+  // Wire up click handlers for cards (to show full weather)
+  container.querySelectorAll(".saved-card").forEach((card) => {
+    card.addEventListener("click", async (e) => {
+      // Don't trigger if clicking remove or refresh buttons
+      if (
+        e.target.closest(".saved-card__remove") ||
+        e.target.closest(".saved-card__refresh")
+      ) {
+        return;
+      }
+      const key = card.getAttribute("data-fav-key");
+      const fav = favorites[key];
+      if (fav) {
+        lastSelectedLocation = {
+          name: fav.name,
+          country: fav.country,
+          state: fav.state,
+          lat: fav.lat,
+          lon: fav.lon,
+        };
+        // Fetch fresh weather and update the favorite's data too
+        const weatherData = await fetchWeather(
+          fav.lat,
+          fav.lon,
+          lastSelectedLocation
+        );
+        if (weatherData) {
+          favorites[key].weatherData = weatherData;
+          favorites[key].lastUpdated = Date.now();
+          saveFavorites();
+          renderSavedLocations();
+        }
+      }
+    });
+  });
+
+  // Wire up remove buttons
+  container.querySelectorAll(".saved-card__remove").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const key = btn.getAttribute("data-fav-key");
+      if (key && favorites[key]) {
+        delete favorites[key];
+        saveFavorites();
+        renderSavedLocations();
+        // Also update the star button in main weather card if visible
+        const favoriteBtn = document.getElementById("weather-favorite-btn");
+        if (favoriteBtn && lastSelectedLocation) {
+          const currentKey = createLocationKey(lastSelectedLocation);
+          if (currentKey === key) {
+            favoriteBtn.classList.remove("is-favorite");
+            favoriteBtn.setAttribute("aria-label", "Add to favorites");
+            favoriteBtn.innerHTML = `<svg class="icon" width="20" height="20"><use href="assets/sprite.svg#icon-star"></use></svg>`;
+          }
+        }
+      }
+    });
+  });
+
+  // Wire up refresh buttons
+  container.querySelectorAll(".saved-card__refresh").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const key = btn.getAttribute("data-fav-key");
+      const fav = favorites[key];
+      if (!fav) return;
+
+      // Visual feedback - spin the refresh icon
+      btn.classList.add("refreshing");
+
+      try {
+        const unit = getSelectedUnit() || "metric";
+        const url = `http://localhost:3000/api/weather?lat=${encodeURIComponent(
+          fav.lat
+        )}&lon=${encodeURIComponent(fav.lon)}&units=${encodeURIComponent(
+          unit
+        )}&exclude=minutely`;
+
+        const resp = await fetch(url);
+        if (resp.ok) {
+          const json = await resp.json();
+          favorites[key].weatherData = json;
+          favorites[key].lastUpdated = Date.now();
+          saveFavorites();
+          renderSavedLocations();
+        }
+      } catch (err) {
+        console.error("Failed to refresh favorite:", err);
+      } finally {
+        btn.classList.remove("refreshing");
+      }
+    });
+  });
+}
+
+/**
+ * Refreshes weather data for all favorites on page load.
+ * Staggers requests to avoid overwhelming the API.
+ */
+async function refreshAllFavorites() {
+  const favKeys = Object.keys(favorites);
+  if (favKeys.length === 0) return;
+
+  const unit = getSelectedUnit() || "metric";
+
+  for (let i = 0; i < favKeys.length; i++) {
+    const key = favKeys[i];
+    const fav = favorites[key];
+
+    try {
+      const url = `http://localhost:3000/api/weather?lat=${encodeURIComponent(
+        fav.lat
+      )}&lon=${encodeURIComponent(fav.lon)}&units=${encodeURIComponent(
+        unit
+      )}&exclude=minutely`;
+
+      const resp = await fetch(url);
+      if (resp.ok) {
+        const json = await resp.json();
+        favorites[key].weatherData = json;
+        favorites[key].lastUpdated = Date.now();
+      }
+    } catch (err) {
+      console.error(`Failed to refresh favorite ${fav.name}:`, err);
+    }
+
+    // Stagger requests
+    if (i < favKeys.length - 1) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, FAV_REFRESH_STAGGER_MS)
+      );
+    }
+  }
+
+  // Save updated data and re-render
+  saveFavorites();
+  renderSavedLocations();
+}
+
 // =====================================================================
 // === 8. UI STATE MANAGEMENT ===
 // === clearSuggestions, setHighlight, selectSuggestion, ===
@@ -1370,6 +1814,8 @@ if (unitToggle) {
     if (!btn) return;
     const unit = btn.getAttribute("data-unit");
     setUnit(unit);
+
+    // Re-fetch current weather if a location is selected
     if (
       lastSelectedLocation &&
       Number.isFinite(Number(lastSelectedLocation.lat)) &&
@@ -1382,14 +1828,26 @@ if (unitToggle) {
         lastSelectedLocation
       );
     }
+
+    // Re-fetch all favorites with new units
+    refreshAllFavorites();
   });
 }
 
 // --- Initialization ---
 // Code that runs immediately when the script loads.
 
+// Load favorites from localStorage
+favorites = loadFavorites();
+
 // Set the correct unit button as active based on saved preference
 applyUnitToUI(currentUnit);
+
+// Render saved locations (with cached data initially)
+renderSavedLocations();
+
+// Refresh all favorites with fresh data (staggered API calls)
+refreshAllFavorites();
 
 // Start listening for search input and fetch location suggestions
 addDebouncedInputListener((value) => {

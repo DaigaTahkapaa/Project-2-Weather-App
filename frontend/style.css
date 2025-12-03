@@ -1,70 +1,112 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   CSS CUSTOM PROPERTIES (Variables)
+   ═══════════════════════════════════════════════════════════════════════════
+   :root targets the <html> element. Variables defined here can be reused
+   throughout the stylesheet using var(--variable-name). This makes it easy
+   to maintain consistent colors and update the theme in one place.
+   ═══════════════════════════════════════════════════════════════════════════ */
 :root {
-  /* 🎨 Primary palette (soft blues & corals) */
-  --color-primary-1: #8ab8d5; /* medium blue */
-  --color-primary-2: #b1d0e5; /* light blue */
-  --color-accent-1: #ffe1dc; /* very light coral */
-  --color-accent-2: #f9c6be; /* soft coral */
-  --color-accent-3: #f3aa9e; /* stronger coral */
+  /* 🎨 Primary palette - the main colors used throughout the app */
+  --color-primary-1: #8ab8d5; /* medium blue - used for headers, buttons */
+  --color-primary-2: #b1d0e5; /* light blue - used for secondary backgrounds */
+  --color-accent-1: #ffe1dc; /* very light coral - subtle highlights */
+  --color-accent-2: #f9c6be; /* soft coral - button backgrounds */
+  --color-accent-3: #f3aa9e; /* stronger coral - hover states */
 
-  /* 🖋️ Text colors */
-  --color-text-dark: #000000; /* main text */
+  /* 🖋️ Text colors - for readable content */
+  --color-text-dark: #000000; /* main text on light backgrounds */
   --color-text-light: #ffffff; /* text on dark backgrounds */
 
-  /* ⚪ Neutral backgrounds */
-  --color-bg-lighter: #f5f5f5; /* lighter gray background */
-  --color-bg-light: #e6e6e6; /* light gray background */
-  --color-bg-dark: #48484a; /* dark gray background */
-  --color-bg-white: #ffffff; /* pure white background */
+  /* ⚪ Neutral backgrounds - various shades of gray/white */
+  --color-bg-lighter: #f5f5f5; /* page background */
+  --color-bg-light: #e6e6e6; /* card backgrounds, borders */
+  --color-bg-dark: #48484a; /* dark elements like icons */
+  --color-bg-white: #ffffff; /* pure white for cards */
 
-  /* ⚠️ Status colors */
-  --color-warning: #ec6e4c; /* warning / accent orange-red */
-  --color-warning-bright: #ff7f50; /* brighter variant */
+  /* ⚠️ Status colors - for alerts and important elements */
+  --color-warning: #ec6e4c; /* warning messages, favorite star */
+  --color-warning-bright: #ff7f50; /* brighter version for active states */
 
-  /* 🌡️ Temperature colors */
-  --color-temp-freezing: #0050a0; /* darker blue: below -10 */
-  --color-temp-cold: #0099ff; /* medium blue (primary-1): -10 to -1 */
-  --color-temp-neutral: #444444; /* gray: 0 */
-  --color-temp-warm: #ff7043; /* coral (accent-3): +1 to +15 */
-  --color-temp-hot: #ff1a1a; /* red: above +15 */
+  /* 🌡️ Temperature colors - visual feedback based on temperature ranges */
+  --color-temp-freezing: #0050a0; /* dark blue: very cold (below -10°C) */
+  --color-temp-cold: #0099ff; /* medium blue: cold (-10 to -1°C) */
+  --color-temp-neutral: #444444; /* gray: around zero (0°C) */
+  --color-temp-warm: #ff7043; /* coral: comfortable (+1 to +15°C) */
+  --color-temp-hot: #ff1a1a; /* red: hot (above +15°C) */
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   CSS RESET & BASE STYLES
+   ═══════════════════════════════════════════════════════════════════════════
+   These rules normalize browser defaults and set up fundamental styles
+   that apply to the entire page.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 
+   box-sizing: border-box makes width/height include padding and border,
+   not just the content. This makes sizing elements much more predictable.
+*/
 * {
   box-sizing: border-box;
 }
 
+/* Ensure html and body take up the full viewport height */
 html,
 body {
   height: 100%;
 }
 
+/* Base body styles - font, colors, and spacing */
 body {
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
-    sans-serif;
+    sans-serif; /* Uses the system's default font for a native feel */
   background: var(--color-bg-lighter);
   color: var(--color-text-dark);
-  line-height: 1.6;
+  line-height: 1.6; /* Comfortable line spacing for readability */
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   SITE HEADER
+   ═══════════════════════════════════════════════════════════════════════════
+   The top header section with the app title and tagline.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Flexbox container to align header elements horizontally */
 .site-header-content {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  align-items: center; /* Vertically center items */
+  gap: 1rem; /* Space between logo/icon and text */
 }
 
+/* Stack the title and tagline vertically */
 .site-text {
   display: flex;
   flex-direction: column;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   ACCESSIBILITY STYLES
+   ═══════════════════════════════════════════════════════════════════════════
+   Styles that improve keyboard navigation and screen reader support.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 
+   Custom focus outline for keyboard users - makes it clear which element
+   is currently focused when using Tab to navigate.
+*/
 button:focus,
 input:focus,
 select:focus {
   outline: 3px solid var(--color-primary-1);
-  outline-offset: 2px;
+  outline-offset: 2px; /* Small gap between element and outline */
 }
 
-/* Utility: screen-reader only */
+/* 
+   Screen Reader Only - hides content visually but keeps it accessible
+   to screen readers. Use this for labels that provide context for
+   assistive technology but shouldn't be visible on screen.
+*/
 .sr-only {
   position: absolute;
   height: 1px;
@@ -73,17 +115,23 @@ select:focus {
   clip: rect(1px, 1px, 1px, 1px);
 }
 
-/* Layout */
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE LAYOUT
+   ═══════════════════════════════════════════════════════════════════════════
+   Main structural elements that define the page layout.
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* Main content container - centers content and limits max width */
 main {
-  max-width: 1100px;
-  margin: 0 auto;
+  max-width: 1100px; /* Prevents content from stretching too wide on large screens */
+  margin: 0 auto; /* Centers the main content horizontally */
   padding: 20px;
 }
 
+/* Gradient header bar at the top of the page */
 .site-header {
   background: linear-gradient(
     135deg,
-    var(--color-primary-1),
+    /* Diagonal gradient direction */ var(--color-primary-1),
     var(--color-accent-2)
   );
   color: var(--color-text-dark);
@@ -91,6 +139,7 @@ main {
   border-radius: 12px;
 }
 
+/* Remove default margins from header text elements */
 .site-title {
   margin: 0 0 6px;
 }
@@ -99,44 +148,56 @@ main {
   margin: 0;
 }
 
+/* White panel that contains the search input and controls */
 .controls-panel {
   background: var(--color-bg-white);
   border-radius: 12px;
   padding: 16px;
   margin: 12px 0;
+  /* Subtle layered shadow for depth - combines a tight and spread shadow */
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
-/* Controls (form + inputs) */
+/* ═══════════════════════════════════════════════════════════════════════════
+   SEARCH CONTROLS (Form & Inputs)
+   ═══════════════════════════════════════════════════════════════════════════
+   The search bar, buttons, and unit toggle at the top of the app.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Flexbox layout for the controls - wraps on small screens */
 #controls {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* Allows items to wrap to next line if needed */
   align-items: center;
 }
 
+/* The search text input field */
 #controls #q {
-  flex: 1;
-  min-width: 220px;
+  flex: 1; /* Takes up available space */
+  min-width: 220px; /* Prevents input from becoming too narrow */
   padding: 10px 12px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 8px;
 }
 
-/* Ensure the combobox wrapper shares the same flex behavior as the old input
-   so the input stretches and the search button stays on the same line. */
+/* 
+   Combobox wrapper (for autocomplete dropdown) - shares the same 
+   flex behavior as the input so it stretches properly.
+*/
 #controls .combobox {
   flex: 1;
-  min-width: 0; /* allow it to shrink below its content width in flex */
-  position: relative;
+  min-width: 0; /* Allows shrinking below content width in flexbox */
+  position: relative; /* For positioning the dropdown */
 }
 
+/* Make the input inside combobox fill the wrapper */
 #controls .combobox input {
   width: 100%;
   box-sizing: border-box;
 }
 
-/* Search button next to input */
+/* Search button styling */
 #searchBtn {
   margin-left: 8px;
   padding: 10px 14px;
@@ -147,14 +208,16 @@ main {
   cursor: pointer;
   font-weight: 600;
 }
+
+/* Search button hover and focus states */
 #searchBtn:hover,
 #searchBtn:focus-visible {
-  background: var(--color-accent-3);
+  background: var(--color-accent-3); /* Darker on hover */
   outline: 3px solid var(--color-primary-1);
   outline-offset: 2px;
 }
 
-/* Hourly forecast button - match `#searchBtn` styling */
+/* Hourly forecast button - styled to match the search button */
 .h-btn {
   padding: 8px;
   border: none;
@@ -165,13 +228,20 @@ main {
   font-weight: 500;
   font-size: 0.95rem;
 }
+
 .h-btn:hover,
 .h-btn:focus-visible {
   background: var(--color-accent-3);
   outline-offset: 2px;
 }
 
-/* Unit toggle (°C / °F) */
+/* ═══════════════════════════════════════════════════════════════════════════
+   UNIT TOGGLE (°C / °F Switch)
+   ═══════════════════════════════════════════════════════════════════════════
+   Buttons to switch between Celsius and Fahrenheit.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Container for the unit toggle buttons */
 .unit-toggle {
   display: flex;
   gap: 8px;
@@ -179,16 +249,18 @@ main {
   margin-left: 8px;
 }
 
+/* Individual unit button styling */
 .unit-toggle .unit-btn {
   padding: 8px 10px;
   border-radius: 8px;
   border: none;
   cursor: pointer;
   font-weight: 600;
-  background: var(--color-bg-light);
+  background: var(--color-bg-light); /* Inactive state */
   color: var(--color-bg-dark);
 }
 
+/* Active/selected unit button - highlighted with primary color */
 .unit-toggle .unit-btn[aria-pressed="true"],
 .unit-toggle .unit-btn.active {
   background: var(--color-primary-1);
@@ -200,92 +272,343 @@ main {
   outline-offset: 2px;
 }
 
-/* icons for the current weather card*/
+/* ═══════════════════════════════════════════════════════════════════════════
+   ICONS & STATUS MESSAGES
+   ═══════════════════════════════════════════════════════════════════════════
+   SVG icon sizing and status message styling.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Default icon size used in weather cards */
 .icon {
   width: 48px;
   height: 48px;
   color: var(--color-bg-dark);
 }
 
-/* Status and grid */
+/* Status message area (loading, errors, etc.) */
 #status {
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(0, 0, 0, 0.6); /* Semi-transparent for subtle appearance */
   font-size: 0.95rem;
   margin: 8px 0;
 }
 
-/* Warning variant for status messages (assertive) */
+/* Warning status - more prominent for error messages */
 #status.status-warning {
   color: var(--color-warning-bright);
   font-weight: 600;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   SAVED LOCATIONS GRID
+   ═══════════════════════════════════════════════════════════════════════════
+   Grid layout for displaying favorite/saved weather locations as mini cards.
+   Uses CSS Grid with responsive breakpoints to adjust columns.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Grid container - displays up to 4 cards per row */
 .saved-grid {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(4, 1fr); /* up to 4 cards per row */
+  grid-template-columns: repeat(4, 1fr); /* 4 equal-width columns */
 }
-/* saved locations container (empty grid in HTML) */
+
+/* Wrapper container for saved locations section */
 #saved-locations {
   margin: 12px 0;
 }
 
-/* Responsive breakpoints: reduce columns on narrow viewports */
+/* ═══════════════════════════════════════════════════════════════════════════
+   SAVED LOCATION CARDS
+   ═══════════════════════════════════════════════════════════════════════════
+   Individual cards showing saved/favorited locations with weather info.
+   Each card displays: location name, weather description, icon, temp,
+   wind speed, and last updated time.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Main card container - flexbox column layout */
+.saved-card {
+  background: var(--color-bg-white);
+  border-radius: 10px;
+  padding: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  cursor: pointer; /* Clickable to view full weather */
+  transition: transform 0.15s, box-shadow 0.15s; /* Smooth hover animation */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Lift effect on hover - makes card feel interactive */
+.saved-card:hover {
+  transform: translateY(-2px); /* Slight upward movement */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); /* Deeper shadow */
+}
+
+/* Card header - contains location name and weather description */
+.saved-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+/* Top row of header - name on left, remove button on right */
+.saved-card__header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+/* Location name styling */
+.saved-card__name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text-dark);
+  line-height: 1.2;
+  word-break: break-word; /* Handle long location names */
+}
+
+/* Weather description (e.g., "Partly cloudy") */
+.saved-card__desc {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.6);
+  text-transform: capitalize; /* Capitalizes first letter */
+  white-space: nowrap; /* Keep on single line */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Show "..." if text is too long */
+}
+
+/* Remove/delete button (X icon) */
+.saved-card__remove {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%; /* Circular button */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5; /* Subtle until hovered */
+  transition: opacity 0.2s, background-color 0.2s;
+  flex-shrink: 0; /* Don't shrink button */
+}
+
+.saved-card__remove:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.08); /* Light background on hover */
+}
+
+.saved-card__remove .icon {
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-dark);
+}
+
+/* Card body - main content area with icon, temp, and wind */
+.saved-card__body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+/* Weather icon image */
+.saved-card__icon img {
+  display: block;
+  width: 50px;
+  height: 50px;
+}
+
+/* Placeholder shown when icon fails to load */
+.saved-card__icon-placeholder {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 1.2rem;
+}
+
+/* Temperature info container - stacks temp and feels-like */
+.saved-card__info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  flex: 1; /* Take available space */
+}
+
+/* Wind speed display with icon */
+.saved-card__wind {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  color: var(--color-text-dark);
+}
+
+.saved-card__wind .icon {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+}
+
+/* Main temperature display - large and bold */
+.saved-card__temp {
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Unit symbol (°C or °F) next to temperature */
+.saved-card__temp-unit {
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+/* "Feels like" secondary temperature */
+.saved-card__feels-like {
+  font-size: 0.7rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* Card footer - last updated time and refresh button */
+.saved-card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--color-bg-light); /* Separator line */
+}
+
+/* "X minutes ago" timestamp */
+.saved-card__updated {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* Refresh button - circular with icon */
+.saved-card__refresh {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.saved-card__refresh:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.saved-card__refresh .icon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-dark);
+  transition: transform 0.3s;
+}
+
+/* Spinning animation when refresh is in progress */
+.saved-card__refresh.refreshing .icon {
+  animation: spin 0.8s linear infinite;
+}
+
+/* Keyframe animation for spinning refresh icon */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SAVED CARDS - RESPONSIVE BREAKPOINTS
+   ═══════════════════════════════════════════════════════════════════════════
+   Adjust the number of columns based on screen width.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Medium screens: 3 cards per row */
 @media (max-width: 1000px) {
   .saved-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* Small screens: 2 cards per row */
 @media (max-width: 760px) {
   .saved-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* Mobile: 1 card per row (full width) */
 @media (max-width: 480px) {
   .saved-grid {
     grid-template-columns: repeat(1, 1fr);
   }
 }
 
-/* Suggestions dropdown styles */
+/* ═══════════════════════════════════════════════════════════════════════════
+   AUTOCOMPLETE SUGGESTIONS DROPDOWN
+   ═══════════════════════════════════════════════════════════════════════════
+   Dropdown list that appears below the search input showing location matches.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Dropdown container - positioned below the search input */
 .suggestions {
   position: absolute;
   left: 0;
   right: 0;
   margin-top: 0.25rem;
-  z-index: 1000;
+  z-index: 1000; /* Ensures dropdown appears above other content */
   background: var(--color-bg-white, #fff);
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   box-shadow: 0 8px 20px rgba(15, 15, 79, 0.08);
   max-height: 300px;
-  overflow: auto;
+  overflow: auto; /* Scrollable if many results */
   padding: 0.125rem;
-  display: none;
+  display: none; /* Hidden by default, shown via JavaScript */
 }
 
+/* Individual suggestion item */
 .suggestions .suggestion-item {
   padding: 0.5rem 0.75rem;
   cursor: pointer;
-  user-select: none;
+  user-select: none; /* Prevents text selection when clicking */
   border-radius: 4px;
   display: block;
   color: #212529;
 }
 
+/* Highlighted item (keyboard navigation or hover) */
 .suggestions .suggestion-item.highlighted,
 .suggestions .suggestion-item:hover {
   background: var(--color-accent-2, #e7f0fa);
   outline: none;
 }
 
+/* Secondary text in suggestion (country, region info) */
 .suggestions .loc-meta {
   font-size: 0.85rem;
   color: #6b7280;
   margin-left: 0.5rem;
 }
 
-/* Current weather card */
+/* ═══════════════════════════════════════════════════════════════════════════
+   CURRENT WEATHER CARD
+   ═══════════════════════════════════════════════════════════════════════════
+   Main weather display card showing current conditions for selected location.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Card container */
 .weather-card {
   background: var(--color-bg-light);
   border-radius: 12px;
@@ -294,6 +617,7 @@ main {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
+/* Card header with gradient background */
 .weather-card__header {
   padding: 18px;
   background: linear-gradient(
@@ -307,33 +631,36 @@ main {
   justify-content: space-between;
 }
 
+/* Card body - displays weather data in a flexible layout */
 .weather-card__body {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* Allows items to wrap on smaller screens */
   gap: 1rem;
   align-items: center;
   justify-content: space-around;
-  /* Card-like styling (matches .controls-panel) */
   background: var(--color-bg-white);
   border-radius: 12px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
-  margin: 0.75rem; /* gap so card bg peeks around it */
+  margin: 0.75rem; /* Creates space around the inner card */
   padding: 1rem;
 }
 
+/* Large weather icon display */
 .weather-symbol__img {
   width: 150px;
   height: 150px;
 }
 
+/* Individual data tile (temp, humidity, wind, etc.) */
 .weather-card__tile {
   display: flex;
-  flex-direction: column; /* stack top-row and bottom-row vertically */
+  flex-direction: column; /* Stack main value and supporting info */
   padding: 0.5rem;
   align-items: center;
 }
 
+/* Top row of tile - icon and main value side by side */
 .weather-card__tile-top-row {
   display: flex;
   flex-direction: row;
@@ -342,26 +669,29 @@ main {
   gap: 0.5em;
 }
 
+/* Main data value (large text) */
 .weather-card__tile-main-info {
   font-size: 1.75rem;
   font-weight: 700;
   line-height: 1;
 }
 
+/* Bottom row - supporting information stacked vertically */
 .weather-card__tile-bottom-row {
   display: flex;
-  flex-direction: column; /* stack support lines vertically */
+  flex-direction: column;
   align-items: center;
-  min-height: 4em;
+  min-height: 4em; /* Ensures consistent tile height */
 }
 
+/* Secondary/supporting text in tiles */
 .weather-card__tile-support-info {
   font-size: 0.95rem;
   color: rgba(0, 0, 0, 0.65);
   text-align: center;
 }
 
-/* Wind arrow visual sizing and centering */
+/* Wind direction arrow styling */
 .weather-card__wind-arrow,
 .wind-arrow {
   display: inline-flex;
@@ -370,10 +700,13 @@ main {
   width: 28px;
   height: 28px;
 }
+
 .weather-card__wind-arrow .icon {
   width: 18px;
   height: 18px;
 }
+
+/* Location title text */
 .weather-card__title {
   font-size: 1.6rem;
   font-weight: 700;
@@ -381,6 +714,44 @@ main {
   color: var(--color-text-dark);
 }
 
+/* Container for title and favorite star button */
+.weather-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Favorite (star) button - toggles location as favorite */
+.weather-card__favorite {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, color 0.15s;
+}
+
+/* Grow effect on hover */
+.weather-card__favorite:hover {
+  transform: scale(1.15);
+}
+
+/* Star icon styling */
+.weather-card__favorite .icon {
+  width: 22px;
+  height: 22px;
+  color: var(--color-warning);
+}
+
+/* Filled star when location is favorited */
+.weather-card__favorite.is-favorite .icon {
+  color: var(--color-warning-bright);
+}
+
+/* Weather description subtitle */
 .weather-card__subtitle {
   font-size: 1.2rem;
   padding: 5px 10x;
@@ -388,11 +759,13 @@ main {
   font-weight: 600;
 }
 
+/* Left side of header (contains title elements) */
 .weather-card__header-left {
   display: flex;
   align-items: center;
 }
 
+/* Refresh button in header */
 .weather-card__refresh {
   background: transparent;
   border: none;
@@ -400,7 +773,7 @@ main {
   padding: 8px;
 }
 
-/* Meta row between header and body */
+/* Meta information row (shows date/time info) */
 .weather-card__meta-row {
   font-size: 1.2rem;
   background: var(--color-primary-2);
@@ -408,18 +781,27 @@ main {
   padding-left: 10px;
 }
 
-/* Disabled refresh */
+/* Disabled state for refresh button */
 .weather-card__refresh[disabled] {
   opacity: 0.6;
-  pointer-events: none;
+  pointer-events: none; /* Prevents clicking */
 }
+
 .weather-card__refresh[disabled] .icon {
   color: var(--color-bg-light);
 }
 
-/* Daily forecast list — single shared grid for headers + items */
+/* ═══════════════════════════════════════════════════════════════════════════
+   DAILY FORECAST LIST
+   ═══════════════════════════════════════════════════════════════════════════
+   7-column grid layout for displaying multi-day weather forecast.
+   Uses CSS Grid with subgrid for aligned columns across header and items.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Main grid container with 7 columns */
 .daily-weather-list {
   display: grid;
+  /* Columns: Date | Icon | Temp | Precip | Pop | Wind | Button */
   grid-template-columns: 200px 100px 120px 100px 120px minmax(140px, 1fr) minmax(
       100px,
       1fr
@@ -427,27 +809,30 @@ main {
   column-gap: 0.5rem;
 }
 
+/* Header row uses display: contents so children flow into parent grid */
 .daily-weather-list__headers {
-  display: contents; /* children flow into parent grid */
+  display: contents;
 }
 
+/* Forecast column headers - spans columns 2-6 */
 .daily-weather-list__forecast-headers {
-  grid-column: 2 / 7; /* span columns 2–6 (Weather → Wind) */
+  grid-column: 2 / 7; /* Start at column 2, end at column 7 */
   display: grid;
-  grid-template-columns: subgrid; /* inherit column sizes from parent */
-  position: sticky;
+  grid-template-columns: subgrid; /* Inherit column widths from parent */
+  position: sticky; /* Stays visible when scrolling */
   top: 0;
   background-color: var(--color-bg-light);
   padding: 1rem 0 0 0;
 }
 
+/* Individual header cell styling */
 .daily-weather-list__header {
   font-weight: bold;
   text-align: center;
   justify-self: center;
 }
 
-/* The <ol> wrapper also uses display: contents so <li> items flow into the grid */
+/* Ordered list wrapper - also uses contents for grid flow */
 .daily-weather-list__daily {
   display: contents;
   list-style: none;
@@ -455,25 +840,27 @@ main {
   padding: 0;
 }
 
-/* Daily items span all 7 columns as a subgrid row */
+/* Individual day row - spans all columns as a subgrid row */
 .daily-weather-list-item {
-  grid-column: 1 / -1; /* span full width */
+  grid-column: 1 / -1; /* Span from first to last column */
   display: grid;
-  grid-template-columns: subgrid; /* inherit column sizes from parent */
+  grid-template-columns: subgrid; /* Inherit column widths from parent */
   align-items: center;
   padding: 0;
   background: var(--color-bg-white);
   border-radius: 12px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
-  margin: 0.3rem 0.75rem; /* gap so card bg peeks around it */
+  margin: 0.3rem 0.75rem;
   padding: 0;
 }
 
+/* Date column styling */
 .daily-weather-list-item__date {
   font-weight: 600;
   margin-left: 1rem;
 }
 
+/* Center-align all data columns */
 .daily-weather-list-item__icon,
 .daily-weather-list-item__temp,
 .daily-weather-list-item__precip,
@@ -483,7 +870,7 @@ main {
   text-align: center;
 }
 
-/* Wind column has multiple elements, so flex them neatly */
+/* Wind column - stacks wind speed and direction */
 .daily-weather-list-item__wind {
   display: flex;
   flex-direction: column;
@@ -491,41 +878,58 @@ main {
   gap: 0.25rem;
 }
 
-/* Temperature color classes based on value ranges */
+/* ═══════════════════════════════════════════════════════════════════════════
+   TEMPERATURE COLOR CLASSES
+   ═══════════════════════════════════════════════════════════════════════════
+   Applied dynamically based on temperature value to provide visual feedback.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .temp-freezing {
   color: var(--color-temp-freezing);
-} /* below -10 */
+} /* Below -10°C: dark blue */
+
 .temp-cold {
   color: var(--color-temp-cold);
-} /* -10 to -1 */
+} /* -10 to -1°C: medium blue */
+
 .temp-neutral {
   color: var(--color-temp-neutral);
-} /* 0 */
+} /* 0°C: gray */
+
 .temp-warm {
   color: var(--color-temp-warm);
-} /* +1 to +15 */
+} /* +1 to +15°C: coral */
+
 .temp-hot {
   color: var(--color-temp-hot);
-} /* above +15 */
+} /* Above +15°C: red */
 
-/* ─── Responsive: small screens ─── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   DAILY FORECAST - MOBILE RESPONSIVE LAYOUT
+   ═══════════════════════════════════════════════════════════════════════════
+   On small screens, switch from 7-column table to a compact card layout
+   using CSS Grid areas for flexible positioning.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 @media (max-width: 700px) {
-  /* Hide header row on small screens */
+  /* Hide the desktop header row on mobile */
   .daily-weather-list__headers {
     display: none;
   }
 
-  /* Switch from 7-column grid to block container */
+  /* Switch from grid to block layout */
   .daily-weather-list {
     display: block;
   }
 
-  /* Each daily item: 3-column grid
-     Row 1: date spans all 3
-     Row 2: icon | temp | temp
-     Row 3: icon | prec | pop
-     Row 4: wind spans all 3
-     Row 5: btn spans all 3 (if present) */
+  /* 
+     Each forecast item becomes a 3-column mini-card:
+     Row 1: Date spans all 3 columns
+     Row 2: Icon | Temperature (spans 2)
+     Row 3: Icon | Precipitation | Pop%
+     Row 4: Wind spans all 3
+     Row 5: Hourly button spans all 3
+  */
   .daily-weather-list-item {
     display: grid;
     grid-template-columns: auto 1fr 1fr;
@@ -540,16 +944,20 @@ main {
     align-items: center;
   }
 
+  /* Assign grid areas to each element */
   .daily-weather-list-item__date {
     grid-area: date;
     margin-left: 0;
     text-align: left;
     font-size: 1.1rem;
   }
+
   .daily-weather-list-item__icon {
     grid-area: icon;
     text-align: center;
   }
+
+  /* Larger weather icon on mobile */
   .daily-weather-list-item__icon img {
     width: 60px;
     height: 60px;
@@ -559,15 +967,18 @@ main {
     grid-area: temp;
     text-align: left;
   }
+
   .daily-weather-list-item__precip {
     grid-area: prec;
     text-align: left;
   }
+
   .daily-weather-list-item__pop {
     grid-area: pop;
     text-align: left;
   }
 
+  /* Wind row - horizontal layout on mobile */
   .daily-weather-list-item__wind {
     grid-area: wind;
     flex-direction: row;
@@ -581,7 +992,10 @@ main {
     text-align: center;
   }
 
-  /* When no hourly button, omit that row */
+  /* 
+     When there's no hourly button, use alternative grid layout
+     without the button row using :has() selector
+  */
   .daily-weather-list-item:not(:has(.daily-weather-list-item__h_button)) {
     grid-template-areas:
       "date  date  date"
@@ -591,29 +1005,43 @@ main {
   }
 }
 
-/* ─────────────────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════════════
    HOURLY FORECAST MODAL
-   ───────────────────────────────────────────────────────────────────── */
+   ═══════════════════════════════════════════════════════════════════════════
+   Modal dialog that appears when clicking "Hourly" button on a forecast day.
+   Uses native HTML <dialog> element for accessibility and ease of use.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Modal backdrop and container */
+/* 
+   Prevent background scrolling when modal is open.
+   The :has() selector checks if any dialog element is open.
+*/
+body:has(dialog[open]) {
+  overflow: hidden;
+}
+
+/* Modal container styling */
 .modal-dialog {
   border: none;
   border-radius: 12px;
   padding: 0;
-  max-width: 90vw;
-  max-height: 85vh;
+  max-width: 90vw; /* vw = viewport width percentage */
+  max-height: 85vh; /* vh = viewport height percentage */
   width: 600px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   overflow: hidden;
 }
 
-/* Backdrop styling when modal is open */
+/* 
+   Backdrop (dark overlay behind modal).
+   ::backdrop is a pseudo-element that appears behind the dialog.
+*/
 .modal-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(2px);
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+  backdrop-filter: blur(2px); /* Subtle blur effect on background */
 }
 
-/* Modal header */
+/* Modal header with gradient background */
 .modal-dialog__header {
   background: linear-gradient(
     135deg,
@@ -621,11 +1049,12 @@ main {
     var(--color-accent-2)
   );
   padding: 1rem 1.25rem;
-  position: sticky;
+  position: sticky; /* Stays at top when scrolling modal content */
   top: 0;
   z-index: 1;
 }
 
+/* Header content - title on left, close button on right */
 .modal-dialog__header-content {
   display: flex;
   justify-content: space-between;
@@ -640,7 +1069,7 @@ main {
   color: var(--color-text-dark);
 }
 
-/* Close button */
+/* Close button (X) styling */
 .modal-dialog__close-button {
   background: transparent;
   border: none;
@@ -663,25 +1092,32 @@ main {
   color: var(--color-text-dark);
 }
 
-/* Hourly weather dialog body */
+/* Modal body - scrollable content area */
 .hourly-weather-dialog {
   padding: 1rem;
-  overflow-y: auto;
-  max-height: calc(85vh - 70px);
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: calc(85vh - 70px); /* Full height minus header */
   background: var(--color-bg-white);
 }
 
+/* Wrapper for horizontal scroll on narrow screens */
 .hourly-weather-dialog__table {
   overflow-x: auto;
 }
 
-/* Hourly weather table */
+/* ═══════════════════════════════════════════════════════════════════════════
+   HOURLY WEATHER TABLE
+   ═══════════════════════════════════════════════════════════════════════════
+   Table showing hour-by-hour forecast data.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .hourly-weather-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: collapse; /* Removes gaps between table cells */
   font-size: 0.95rem;
 }
 
+/* Table caption - left-aligned title above the table */
 .hourly-weather-table caption {
   text-align: left;
   font-weight: 600;
@@ -690,6 +1126,7 @@ main {
   color: var(--color-text-dark);
 }
 
+/* Table header and data cell padding */
 .hourly-weather-table th,
 .hourly-weather-table td {
   padding: 0.6rem 0.75rem;
@@ -697,6 +1134,7 @@ main {
   border-bottom: 1px solid var(--color-bg-light);
 }
 
+/* Header cells - sticky at top when scrolling */
 .hourly-weather-table th {
   background: var(--color-bg-lighter);
   font-weight: 600;
@@ -705,18 +1143,19 @@ main {
   color: var(--color-text-dark);
 }
 
+/* Highlight row on hover for better readability */
 .hourly-weather-table tbody tr:hover {
   background: var(--color-bg-lighter);
 }
 
-/* Weather icon in table */
+/* Weather icon in table cells */
 .hourly-weather-table__icon {
   width: 40px;
   height: 40px;
   vertical-align: middle;
 }
 
-/* Wind cell with arrow */
+/* Wind cell - displays speed and direction arrow */
 .hourly-weather-table__wind {
   display: flex;
   align-items: center;
@@ -724,6 +1163,7 @@ main {
   flex-wrap: wrap;
 }
 
+/* Wind direction arrow container */
 .hourly-weather-table__wind-arrow {
   display: inline-flex;
   width: 18px;
@@ -735,8 +1175,14 @@ main {
   height: 100%;
 }
 
-/* Responsive: stack table on very small screens */
+/* ═══════════════════════════════════════════════════════════════════════════
+   HOURLY MODAL - MOBILE RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════
+   Adjustments for very small screens to maximize space usage.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 @media (max-width: 500px) {
+  /* Use more screen width on mobile */
   .modal-dialog {
     width: 95vw;
     max-height: 90vh;
@@ -746,6 +1192,7 @@ main {
     max-height: calc(90vh - 70px);
   }
 
+  /* Smaller font and padding for compact display */
   .hourly-weather-table {
     font-size: 0.85rem;
   }
@@ -755,6 +1202,7 @@ main {
     padding: 0.5rem 0.4rem;
   }
 
+  /* Smaller weather icons */
   .hourly-weather-table__icon {
     width: 32px;
     height: 32px;
