@@ -374,9 +374,10 @@ main {
 /* Dropdown container - positioned below the search input */
 .suggestions {
   position: absolute;
+  top: 100%; /* Position directly below the combobox */
   left: 0;
   right: 0;
-  margin-top: 0.25rem;
+  margin-top: 4px;
   z-index: 1000; /* Ensures dropdown appears above other content */
   background: var(--color-bg-white, #fff);
   border: 1px solid #e5e7eb;
@@ -628,7 +629,7 @@ main {
   color: var(--color-text-dark);
 }
 
-/* "X minutes ago" timestamp */
+/* "Timestamp of when the card was updated*/
 .saved-card__updated {
   font-size: 0.75rem;
   color: rgba(0, 0, 0, 0.5);
