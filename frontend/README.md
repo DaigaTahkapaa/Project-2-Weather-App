@@ -1,7 +1,7 @@
 # 🌤️ Project-2-Weather-App
 
 A single-page weather forecast application that fetches live weather data from [OpenWeatherMap API](https://openweathermap.org/api), allowing users to:
-- 🔍 Search for any city worldwide with autocomplete suggestions
+- 🔍 Search for any city worldwide
 - 📍 Use geolocation to get weather for current location
 - 🌡️ View current conditions and 7-day forecast
 - ⏰ See hourly forecasts for today and tomorrow
@@ -18,13 +18,13 @@ A single-page weather forecast application that fetches live weather data from [
 
 ## Demo Video
 
-**Hosted:** [Project-2-Weather-App-Video](YOUR_VIDEO_LINK_HERE)
+**Hosted:** [Project-2-Weather-App-Video](https://laureauas-my.sharepoint.com/:v:/g/personal/dat00012_laurea_fi/IQDKU2PGtTfEQ7dIZx2iFhsKAZPScsxDrfDsduaflCElcjc?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=7XYtit)
 
 Timestamps:
 - 00:00 Intro
-- 00:XX Project Overview
-- 00:XX Demo
-- 00:XX Conclusion
+- 00:58 Project Overview
+- 02:47 Demo
+- 04:49 Conclusion
 
 ---
 
@@ -232,11 +232,11 @@ Project-2-Weather-App/
 | **Git portfolio quality** | 1/1 | Public repo, .gitignore excludes node_modules and .env |
 | **Links and access** | 1/1 | README links to video and repo |
 
-**Subtotal:** 5/5
+**Subtotal:** 5/5 with penalty for video being late 1 day 4.8/5
 
 ---
 
-### **Total Self-Assessment: 34/35**
+### **Total Self-Assessment: 33.8/35**
 
 ---
 
@@ -250,13 +250,11 @@ Building this weather app reinforced several key concepts:
 
 2. **Proxy servers for API security:** Exposing API keys in frontend code is a security risk. Setting up an Express proxy to handle API calls server-side keeps the key secure while allowing the frontend to make requests freely.
 
-3. **State management in vanilla JS:** Without a framework, managing state (favorites, selected location, unit preference, last weather data) requires careful planning. Using `localStorage` for persistence and module-level variables for session state worked well.
+3. **Timezone handling:** Displaying "local time" for a weather location (not the user's timezone) was trickier than expected. OpenWeatherMap provides `timezone_offset` in seconds, which needs to be applied correctly to timestamps.
 
-4. **Timezone handling:** Displaying "local time" for a weather location (not the user's timezone) was trickier than expected. OpenWeatherMap provides `timezone_offset` in seconds, which needs to be applied correctly to timestamps.
+4. **Debouncing and rate limiting:** To avoid hammering the API, I implemented debounced search (waits 350ms after typing stops) and a refresh button cooldown (10 seconds). These patterns improve UX and reduce unnecessary API calls.
 
-5. **Debouncing and rate limiting:** To avoid hammering the API, I implemented debounced search (waits 350ms after typing stops) and a refresh button cooldown (10 seconds). These patterns improve UX and reduce unnecessary API calls.
-
-6. **Accessibility considerations:** ARIA attributes for the autocomplete (`role="listbox"`, `aria-selected`), keyboard navigation, and screen-reader labels make the app usable for more people.
+5. **Accessibility considerations:** ARIA attributes for the autocomplete (`role="listbox"`, `aria-selected`), keyboard navigation, and screen-reader labels make the app usable for more people.
 
 ### Known Limitations
 
@@ -280,8 +278,8 @@ Building this weather app reinforced several key concepts:
 5. Add drag-and-drop to reorder favorite cards
 6. Add weather alerts display
 7. Implement dark/light theme toggle
-8. Add a "recent searches" history
-9. Show weather maps (OpenWeatherMap has a maps API)
+8. Use weather icon set that would allow personal styling
+9. Add a "recent searches" history
 10. Add proper TypeScript for better type safety
 11. Set up ESLint/Prettier with pre-commit hooks
 
